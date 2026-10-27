@@ -9,8 +9,10 @@ Alternatives considered: photogrammetry of a whole site would allow better close
 - [x] Add local photograph/HDR and preserve source/checksums/CC0 attribution.
 - [x] Add ground-projected environment, remove procedural distant vegetation/buildings, retain nearby geometry and safe loading fallback.
 - [x] Inspect actual front/rear/side views and mobile screenshots; verify panorama failure, input regressions, DPI framing, model tests and build.
-- [ ] Publish and verify Pages. Save actual updated screenshots in the project.
+- [x] Publish and verify Pages. Save actual updated screenshots in the project.
 
 Files: scene.ts, visual-assets.ts, photographic-environment.ts, asset preparation/credits/README and browser checks. No new runtime dependencies. Camera/physics dimensions unchanged. Verify geometry stays below the practice pavement, no fog/tone mapping distorts the pre-tonemapped photograph, and panorama requests use the repository base path.
 
 Verification: 27 unit tests passed; production build passed; desktop/mobile screenshots inspected. Browser main controls/layout suite, 12 D/R keyboard-brake cases, and DPR framing all passed. Four deliberately blocked assets (panorama, matching HDR, car, asphalt) preserved operation and reported fallback, with no page errors.
+
+Published application commit: 785f4ab. GitHub Pages build and deployment succeeded: https://github.com/bboy800820/reverse_challenge/actions/runs/40546971908. Public-site checks confirmed data-scenery=photo, R movement, live mirrors, Space braking, and all four fallback cases. New photographic-desktop/mobile/reversing screenshots are stored in assets/previews; previous screenshots remain available for comparison.
