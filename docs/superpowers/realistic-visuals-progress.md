@@ -23,3 +23,12 @@ New tests require Node filesystem/crypto types; added explicit @types/node dev d
 Review scope decisions: exact SUV reproduction/calibration are explicitly deferred product choices, with representative-car limitations visible in README and credits. No physical mobile frame-rate claim is made. Latest narrow-layout rendering is checked by refreshed screenshots and the existing 320/390/768 layout test. Historical input behavior is covered by the full main/browser brake regression suite despite remaining unchanged. The independent reviewer inspected code/assets; the author ran all tests. No unresolved review findings remain.
 
 Final screenshot inspection caught a compressed-normal/topology mismatch causing faceted black reflections. An isolated render with MeshNormalMaterial reproduced it; rebuilding decoded vertex normals removed the artifacts. The normal-rebuild regression failed before the helper existed, then passed. Rebuild runs once on the decoded shared template before clones are made. Shadow-receiving was restored after this diagnosis; disabling shadows was not the fix. Final suite: 26/26 and production build pass. Final screenshots show smooth car surfaces, readable cockpit instruments, and the closed footwell. Performance numbers above are exploratory desktop measurements, not a guaranteed frame-rate or mobile benchmark.
+
+## Delivery
+
+- Merged by fast-forward and pushed as 6401685 using the authorized bboy800820 account.
+- GitHub Actions build/tests/deployment succeeded: https://github.com/bboy800820/reverse_challenge/actions/runs/40540096517.
+- Public site main browser suite passed: startup, PRND, D/R creep, brake priority, overlapping inputs, neutral, steering, pause/blur/reset and 320/390/768 layouts; zero page errors. Public credits return navigation also passed.
+- Final DPR framing differences: rear 1.50, left 2.90, right 2.80, overhead 1.79; all below 5, and deliberately shifted controls exceeded 15. Asset failure cases for sky, car and road all passed driving/braking with zero page errors.
+- Final public-site desktop measurement: Intel Iris Xe, Edge, 1440 × 1000, mean 22.9 FPS and median frame 49.7 ms. This is a working visual prototype, not a high-frame-rate or physical-device mobile performance claim.
+- The auto-review policy rejected deletion of the plan's ignored scratch directory, stating "blocked by policy". Scratch files were retained; they are neither committed nor deployed.

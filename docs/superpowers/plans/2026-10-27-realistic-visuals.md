@@ -21,4 +21,4 @@ Visual model orientation and dimensions versus collider; mirror layers and cockp
 - [x] Add material/asset and vehicle/cockpit modules; test model fitting against a known asymmetric source box and the existing physical dimensions. Run a failing model-fit test, then implement.
 - [x] Replace scene materials, environment and vegetation; integrate async loading and fallback with lifecycle handling. Build and run existing model/input tests.
 - [x] Inspect actual desktop/mobile rendered screenshots; test cockpit/overhead/mirrors after driving and at DPR 1/2, with a missing optional asset.
-- [ ] Obtain one fresh review, fix important findings, complete full verification and publish the visual update through the existing Pages workflow.
+- [x] Obtain one fresh review, fix important findings, complete full verification and publish the visual update through the existing Pages workflow.
