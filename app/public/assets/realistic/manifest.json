@@ -42,6 +42,18 @@
     "sha256": "fd94c84997b8a3c353b62c2125a9b44e19509956986a126e472684432a02d798"
   },
   {
+    "file": "parking-panorama.jpg",
+    "source": "https://dl.polyhaven.org/file/ph-assets/HDRIs/extra/Tonemapped%20JPG/mall_parking_lot.jpg",
+    "bytes": 4677140,
+    "sha256": "ac5fd49a5479eafa7a33cc6e50bb4e8ead8ac23c56d9983455d9f50ee7c53a57"
+  },
+  {
+    "file": "parking-light.hdr",
+    "source": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/mall_parking_lot_1k.hdr",
+    "bytes": 1511729,
+    "sha256": "5aa442740d84342b266a75992305518a852e582fd77cae86292b7721b852dd67"
+  },
+  {
     "file": "ferrari.glb",
     "source": "https://raw.githubusercontent.com/mrdoob/three.js/r186/examples/models/gltf/ferrari.glb",
     "source_sha256": "cafe3f48da6797aa9bde75ca768bc5b57db366575fd233e90df186ae988a876e",

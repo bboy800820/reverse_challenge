@@ -28,8 +28,16 @@ export class VisualAssets {
   }
 
   async sky() {
-    const texture = this.keep(await new HDRLoader().loadAsync(base + 'daylight.hdr'));
+    const texture = this.keep(await new HDRLoader().loadAsync(base + 'parking-light.hdr'));
     texture.mapping = T.EquirectangularReflectionMapping;
+    return texture;
+  }
+
+  async panorama() {
+    const texture = this.keep(await new T.TextureLoader().loadAsync(base + 'parking-panorama.jpg'));
+    texture.colorSpace = T.SRGBColorSpace;
+    texture.wrapS = T.RepeatWrapping;
+    texture.anisotropy = 4;
     return texture;
   }
 

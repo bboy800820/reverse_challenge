@@ -7,7 +7,7 @@ URL = os.environ.get('PARKING_URL', 'http://127.0.0.1:5187')
 ROOT = Path(__file__).resolve().parent
 with sync_playwright() as p:
     browser = p.chromium.launch(channel='msedge', headless=True)
-    for blocked in [None, '**/daylight.hdr', '**/ferrari.glb', '**/asphalt_02/Diffuse.jpg']:
+    for blocked in [None, '**/parking-panorama.jpg', '**/parking-light.hdr', '**/ferrari.glb', '**/asphalt_02/Diffuse.jpg']:
         page = browser.new_page(viewport={'width':1440, 'height':1000})
         errors, failed, requests = [], [], []
         page.on('pageerror', lambda e: errors.append(str(e)))
@@ -19,6 +19,7 @@ with sync_playwright() as p:
         page.wait_for_function("['ready','fallback'].includes(document.querySelector('#app').dataset.assets)", timeout=60000)
         expected = 'fallback' if blocked else 'ready'
         assert page.locator('#app').get_attribute('data-assets') == expected
+        assert page.locator('#app').get_attribute('data-scenery') == ('fallback' if blocked == '**/parking-panorama.jpg' else 'photo')
         assert not failed, failed
         assert not [r for r in requests if r.startswith('https://') and not r.startswith(URL)], requests
         before = page.locator('[data-view="rear"]').screenshot()
@@ -32,7 +33,7 @@ with sync_playwright() as p:
         assert before != after, 'Rear view must update with movement'
         assert page.locator('[data-brake-label]').inner_text() == '踩下中'
         if not blocked:
-            page.screenshot(path=str(ROOT / 'assets/previews/realistic-reversing.png'), full_page=True)
+            page.screenshot(path=str(ROOT / 'assets/previews/photographic-reversing.png'), full_page=True)
         assert not errors, errors
         print(f'PASS assets={expected}, blocked={blocked}, R movement, live mirror, Space brake', flush=True)
         page.close()

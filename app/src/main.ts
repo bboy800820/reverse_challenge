@@ -18,7 +18,7 @@ root.innerHTML = `
         <div class="pause-cover" hidden><strong>練習已暫停</strong><span>按 Esc 或「繼續練習」返回</span></div>
         <div class="render-error" hidden role="alert"></div>
       </div>
-      <div class="driver-footer"><span class="view-dot"></span><span data-visual-status>正在載入場景細節…</span><span class="keyboard-note">鍵盤操作</span></div>
+      <div class="driver-footer"><span class="view-dot"></span><span data-visual-status>正在載入實景環境…</span><span class="keyboard-note">鍵盤操作</span></div>
     </section>
     <aside class="sidebar" aria-label="俯瞰與車輛操控">
       <section class="overhead panel"><div class="panel-heading"><h2>俯瞰輔助</h2><label class="aids-toggle"><input type="checkbox" data-aids checked>軌跡輔助</label></div><div class="map-window" data-view="overhead"></div><div class="map-legend"><span><i class="legend-car"></i>你的車</span><span><i class="legend-target"></i>目標 03</span><span>車頭朝箭頭方向</span></div></section>
@@ -96,7 +96,7 @@ updateUI();
 try {
   const graphics = createScene(root, () => renderFailure('3D 畫面已中斷，請點「重新開始」重新載入。'));
   void graphics.ready.then(() => {
-    $('[data-visual-status]').textContent = root.dataset.assets === 'fallback' ? '部分場景細節未載入，仍可繼續練習；重新整理可重試。' : '留意後視鏡，慢慢倒入 03 號車位';
+    $('[data-visual-status]').textContent = root.dataset.assets === 'fallback' ? '部分場景細節未載入，仍可繼續練習；重新整理可重試。' : '實景環境 · 留意後視鏡，慢慢倒入 03 號車位';
   });
   graphics.renderer.setAnimationLoop(time => {
     const elapsed = lastTime ? Math.max(0, (time - lastTime) / 1000) : 0; lastTime = time;

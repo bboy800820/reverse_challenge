@@ -27,6 +27,9 @@ sky = 'kloofendal_48d_partly_cloudy_puresky'
 meta = json.loads(fetch(f'https://api.polyhaven.com/files/{sky}'))
 info = meta['hdri']['1k']['hdr']
 jobs.append(('daylight.hdr', info['url'], info['md5']))
+parking = json.loads(fetch('https://api.polyhaven.com/files/mall_parking_lot'))
+for filename, info in [('parking-panorama.jpg', parking['tonemapped']), ('parking-light.hdr', parking['hdri']['1k']['hdr'])]:
+    jobs.append((filename, info['url'], info['md5']))
 jobs.append(('ferrari.glb', 'https://raw.githubusercontent.com/mrdoob/three.js/r186/examples/models/gltf/ferrari.glb', None))
 jobs.append(('draco/LICENSE', 'https://raw.githubusercontent.com/google/draco/1.5.7/LICENSE', None))
 

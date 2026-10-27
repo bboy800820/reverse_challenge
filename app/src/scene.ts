@@ -4,7 +4,7 @@ import { BAY_CENTERS, WORLD, localPoint, trajectory, type State } from './simula
 import { VisualAssets } from './visual-assets';
 import { detailedVehicle } from './detailed-vehicle';
 import { createCockpit } from './cockpit';
-import { vegetation } from './vegetation';
+import { photographicEnvironment, ENVIRONMENT_ROTATION } from './photographic-environment';
 
 const mat = (color: number, roughness = .7, metalness = 0) => new T.MeshStandardMaterial({ color, roughness, metalness });
 const unitBox = new T.BoxGeometry(1, 1, 1);
@@ -76,15 +76,14 @@ export function createScene(root: HTMLElement, contextLost: () => void) {
   const ambient = new T.HemisphereLight(0xe0f0ff, 0x64725a, .85); ambient.layers.enableAll(); scene.add(ambient);
   const sun = new T.DirectionalLight(0xfff0d9, 2.7); sun.position.set(-9, 23, -12); sun.target.position.set(12, 0, 9); scene.add(sun, sun.target); sun.layers.enableAll();
   sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -24, right: 24, top: 24, bottom: -24, near: 1, far: 80 }); sun.shadow.bias = -.0002; sun.shadow.normalBias = .025;
-  const grass = mat(0x5a7862), concrete = mat(0x8c9c9e), white = mat(0xdde4df), cyan = new T.MeshBasicMaterial({ color: 0x79e0e8 });
-  box(scene, [180, .1, 160], [12, -.2, 9], grass);
+  const concrete = mat(0x8c9c9e), white = mat(0xdde4df), cyan = new T.MeshBasicMaterial({ color: 0x79e0e8 });
+  const fallbackGround = box(scene, [180, .1, 160], [12, -.3, 9], mat(0x66675d));
   const road = box(scene, [24, .15, 17], [12, -.08, 8.5], new T.MeshStandardMaterial({ map: asphalt(), roughness: .96 })); road.castShadow = false;
   // Physical boundaries match WORLD.bounds. Decorative vegetation stays beyond them.
   box(scene, [.4, .35, 16], [.45, .12, 8.5], concrete);
   box(scene, [.4, .35, 16], [23.55, .12, 8.5], concrete);
   box(scene, [23.5, .35, .4], [12, .12, .8], concrete);
   box(scene, [23.5, .35, .4], [12, .12, 16.7], concrete);
-  box(scene, [29, 1.3, .3], [12, .5, 18.2], mat(0x768c89));
   const goal = new T.Mesh(new T.PlaneGeometry(3, 6.1), new T.MeshBasicMaterial({ color: 0x54b9c6, opacity: .2, transparent: true, depthWrite: false }));
   goal.rotation.x = -Math.PI / 2; goal.position.set(11.3, .012, 11.25); scene.add(goal);
   const parkedCars: { fallback: T.Group; color: number }[] = [];
@@ -102,37 +101,26 @@ export function createScene(root: HTMLElement, contextLost: () => void) {
   // Road markings give a stable visual scale in the forward view.
   for (let x = 3; x < 22; x += 3.1) box(scene, [1.3, .012, .07], [x, .014, 3.6], white);
   const direction = groundLabel('→', '#c5d6d4'); direction.position.set(13, .025, 4.7); direction.scale.set(1.8, 1.8, 1.8); scene.add(direction);
-  scene.add(vegetation());
-  const buildings = mat(0xc8c8c1), window = new T.MeshPhysicalMaterial({ color: 0x547082, roughness: .12, metalness: .55, clearcoat: 1 });
-  for (let i = 0; i < 6; i++) {
-    const x = -15 + i * 11, height = 5 + (i % 3) * 2;
-    box(scene, [8, height, 7], [x, height / 2, -19], buildings);
-    box(scene, [8.15, .18, 7.15], [x, height, -19], concrete);
-    for (let floor = 1; floor < height - 1; floor += 1.6) {
-      for (let col = 0; col < 6; col++) {
-        box(scene, [.78, 1.08, .08], [x - 3.1 + col * 1.24, floor, -15.45], window);
-        box(scene, [.86, .055, .22], [x - 3.1 + col * 1.24, floor - .55, -15.36], white);
-      }
-    }
-  }
-  for (const x of [-1.4, 25.4]) for (const z of [1, 15]) {
-    box(scene, [.1, 4.6, .1], [x, 2.25, z], mat(0x333e43, .4, .65));
-    box(scene, [.6, .08, .24], [x + (x < 0 ? .23 : -.23), 4.55, z], mat(0x242d33, .4, .6), true);
-  }
   const ego = car(0xdcae65); ego.group.traverse(o => o.layers.set(1)); scene.add(ego.group);
   const cockpit = createCockpit(); scene.add(cockpit.group);
   root.classList.add('realistic-cockpit');
   const assets = new VisualAssets();
   let disposed = false, detailedEgo: ReturnType<typeof detailedVehicle> | undefined;
   root.dataset.assets = 'loading';
+  root.dataset.scenery = 'loading';
   const ready = Promise.allSettled([
-    assets.sky().then(texture => { if (!disposed) { scene.environment = texture; scene.background = texture; scene.environmentIntensity = .8; scene.backgroundIntensity = .85; scene.backgroundRotation.y = .6; } }),
+    assets.sky().then(texture => { if (!disposed) { scene.environment = texture; scene.background = texture; scene.environmentIntensity = .65; scene.backgroundIntensity = .85; scene.backgroundRotation.y = ENVIRONMENT_ROTATION; scene.environmentRotation.y = ENVIRONMENT_ROTATION; } }),
+    assets.panorama().then(texture => {
+      if (disposed) return;
+      scene.add(photographicEnvironment(texture));
+      fallbackGround.visible = false;
+      root.dataset.scenery = 'photo';
+    }),
     assets.texture('asphalt_02/Diffuse.jpg', 8, true).then(t => { if (!disposed) { road.material.map!.dispose(); road.material.map = t; road.material.needsUpdate = true; } }),
     assets.texture('asphalt_02/nor_gl.jpg', 8).then(t => { if (!disposed) { road.material.normalMap = t; road.material.normalScale.set(.45, .45); road.material.needsUpdate = true; } }),
     assets.texture('asphalt_02/Rough.jpg', 8).then(t => { if (!disposed) { road.material.roughnessMap = t; road.material.needsUpdate = true; } }),
     assets.texture('concrete_layers_02/Diffuse.jpg', 1, true).then(t => { if (!disposed) { concrete.map = t; concrete.color.set(0xffffff); concrete.needsUpdate = true; } }),
     assets.texture('concrete_layers_02/nor_gl.jpg', 1).then(t => { if (!disposed) { concrete.normalMap = t; concrete.normalScale.set(.3, .3); concrete.needsUpdate = true; } }),
-    assets.texture('leafy_grass/Diffuse.jpg', 50, true).then(t => { if (!disposed) { grass.map = t; grass.color.set(0xb4bd91); grass.needsUpdate = true; } }),
     assets.vehicle().then(source => {
       if (disposed) return;
       for (const { fallback, color } of parkedCars) {
@@ -147,6 +135,7 @@ export function createScene(root: HTMLElement, contextLost: () => void) {
     }),
   ]).then(results => {
     if (disposed) return;
+    if (root.dataset.scenery !== 'photo') root.dataset.scenery = 'fallback';
     const failed = results.filter(r => r.status === 'rejected');
     root.dataset.assets = failed.length ? 'fallback' : 'ready';
     root.dispatchEvent(new CustomEvent('visuals-ready', { detail: { fallback: failed.length > 0 } }));
