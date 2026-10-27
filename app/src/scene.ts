@@ -1,10 +1,14 @@
 import * as T from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { BAY_CENTERS, WORLD, localPoint, trajectory, type State } from './simulation';
+import { VisualAssets } from './visual-assets';
+import { detailedVehicle } from './detailed-vehicle';
+import { createCockpit } from './cockpit';
+import { vegetation } from './vegetation';
 
 const mat = (color: number, roughness = .7, metalness = 0) => new T.MeshStandardMaterial({ color, roughness, metalness });
 const unitBox = new T.BoxGeometry(1, 1, 1);
-function box(parent: T.Object3D, size: [number, number, number], position: [number, number, number], material: T.Material, round = false) {
+function box<M extends T.Material>(parent: T.Object3D, size: [number, number, number], position: [number, number, number], material: M, round = false) {
   const mesh = new T.Mesh(round ? new RoundedBoxGeometry(...size, 2, Math.min(...size) * .18) : unitBox, material);
   if (!round) mesh.scale.set(...size);
   mesh.position.set(...position); mesh.castShadow = true; mesh.receiveShadow = true; parent.add(mesh);
@@ -66,11 +70,11 @@ export function createScene(root: HTMLElement, contextLost: () => void) {
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFShadowMap;
   renderer.shadowMap.autoUpdate = false;
-  renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.18;
+  renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = .95;
   renderer.domElement.addEventListener('webglcontextlost', event => { event.preventDefault(); contextLost(); });
   const scene = new T.Scene(); scene.background = new T.Color(0xb7cddd); scene.fog = new T.Fog(0xb7cddd, 35, 95);
-  const ambient = new T.HemisphereLight(0xe0f0ff, 0x64725a, 2.2); ambient.layers.enableAll(); scene.add(ambient);
-  const sun = new T.DirectionalLight(0xfff0d9, 3.1); sun.position.set(-9, 23, -12); sun.target.position.set(12, 0, 9); scene.add(sun, sun.target); sun.layers.enableAll();
+  const ambient = new T.HemisphereLight(0xe0f0ff, 0x64725a, .85); ambient.layers.enableAll(); scene.add(ambient);
+  const sun = new T.DirectionalLight(0xfff0d9, 2.7); sun.position.set(-9, 23, -12); sun.target.position.set(12, 0, 9); scene.add(sun, sun.target); sun.layers.enableAll();
   sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -24, right: 24, top: 24, bottom: -24, near: 1, far: 80 }); sun.shadow.bias = -.0002; sun.shadow.normalBias = .025;
   const grass = mat(0x5a7862), concrete = mat(0x8c9c9e), white = mat(0xdde4df), cyan = new T.MeshBasicMaterial({ color: 0x79e0e8 });
   box(scene, [180, .1, 160], [12, -.2, 9], grass);
@@ -83,6 +87,7 @@ export function createScene(root: HTMLElement, contextLost: () => void) {
   box(scene, [29, 1.3, .3], [12, .5, 18.2], mat(0x768c89));
   const goal = new T.Mesh(new T.PlaneGeometry(3, 6.1), new T.MeshBasicMaterial({ color: 0x54b9c6, opacity: .2, transparent: true, depthWrite: false }));
   goal.rotation.x = -Math.PI / 2; goal.position.set(11.3, .012, 11.25); scene.add(goal);
+  const parkedCars: { fallback: T.Group; color: number }[] = [];
   BAY_CENTERS.forEach((x, i) => {
     const line = i === 2 ? cyan : white;
     for (const side of [-1, 1]) box(scene, [.085, .012, 6.1], [x + side * 1.5, .015, 11.25], line);
@@ -91,33 +96,68 @@ export function createScene(root: HTMLElement, contextLost: () => void) {
     if (i !== 2) {
       const parked = car([0x446979, 0xd8dfe1, 0xe8e0cd, 0x7792a3, 0x344958][i]);
       parked.group.position.set(x, 0, 12.6); scene.add(parked.group);
+      parkedCars.push({ fallback: parked.group, color: [0x446979, 0xd8dfe1, 0xe8e0cd, 0x7792a3, 0x344958][i] });
     }
   });
   // Road markings give a stable visual scale in the forward view.
   for (let x = 3; x < 22; x += 3.1) box(scene, [1.3, .012, .07], [x, .014, 3.6], white);
   const direction = groundLabel('→', '#c5d6d4'); direction.position.set(13, .025, 4.7); direction.scale.set(1.8, 1.8, 1.8); scene.add(direction);
-  const trunk = mat(0x76675b), foliage = [mat(0x49745a), mat(0x6c8e60), mat(0x3d6955)];
-  const crownGeometry = new T.IcosahedronGeometry(1, 1), trunkGeometry = new T.CylinderGeometry(.12, .2, 2.6, 7);
-  for (let i = 0; i < 24; i++) {
-    const x = i < 12 ? -4 + i * 2.8 : (i < 18 ? -2 : 26), z = i < 12 ? 21 : -3 + (i % 6) * 4;
-    const stem = new T.Mesh(trunkGeometry, trunk); stem.position.set(x, 1.1, z); stem.castShadow = true; scene.add(stem);
-    for (let j = 0; j < 3; j++) {
-      const crown = new T.Mesh(crownGeometry, foliage[(i + j) % 3]); crown.position.set(x + Math.sin(i * 3 + j) * .8, 2.8 + j * .36, z + Math.cos(i + j) * .7); crown.scale.set(1.5, 1.3, 1.5); crown.castShadow = true; scene.add(crown);
-    }
-  }
-  const buildings = mat(0x95a9b2), window = mat(0x647e8f, .3, .2);
+  scene.add(vegetation());
+  const buildings = mat(0xc8c8c1), window = new T.MeshPhysicalMaterial({ color: 0x547082, roughness: .12, metalness: .55, clearcoat: 1 });
   for (let i = 0; i < 6; i++) {
     const x = -15 + i * 11, height = 5 + (i % 3) * 2;
     box(scene, [8, height, 7], [x, height / 2, -19], buildings);
-    for (let floor = 1; floor < height - 1; floor += 1.6) box(scene, [6.6, .75, .04], [x, floor, -15.48], window);
+    box(scene, [8.15, .18, 7.15], [x, height, -19], concrete);
+    for (let floor = 1; floor < height - 1; floor += 1.6) {
+      for (let col = 0; col < 6; col++) {
+        box(scene, [.78, 1.08, .08], [x - 3.1 + col * 1.24, floor, -15.45], window);
+        box(scene, [.86, .055, .22], [x - 3.1 + col * 1.24, floor - .55, -15.36], white);
+      }
+    }
+  }
+  for (const x of [-1.4, 25.4]) for (const z of [1, 15]) {
+    box(scene, [.1, 4.6, .1], [x, 2.25, z], mat(0x333e43, .4, .65));
+    box(scene, [.6, .08, .24], [x + (x < 0 ? .23 : -.23), 4.55, z], mat(0x242d33, .4, .6), true);
   }
   const ego = car(0xdcae65); ego.group.traverse(o => o.layers.set(1)); scene.add(ego.group);
+  const cockpit = createCockpit(); scene.add(cockpit.group);
+  root.classList.add('realistic-cockpit');
+  const assets = new VisualAssets();
+  let disposed = false, detailedEgo: ReturnType<typeof detailedVehicle> | undefined;
+  root.dataset.assets = 'loading';
+  const ready = Promise.allSettled([
+    assets.sky().then(texture => { if (!disposed) { scene.environment = texture; scene.background = texture; scene.environmentIntensity = .8; scene.backgroundIntensity = .85; scene.backgroundRotation.y = .6; } }),
+    assets.texture('asphalt_02/Diffuse.jpg', 8, true).then(t => { if (!disposed) { road.material.map!.dispose(); road.material.map = t; road.material.needsUpdate = true; } }),
+    assets.texture('asphalt_02/nor_gl.jpg', 8).then(t => { if (!disposed) { road.material.normalMap = t; road.material.normalScale.set(.45, .45); road.material.needsUpdate = true; } }),
+    assets.texture('asphalt_02/Rough.jpg', 8).then(t => { if (!disposed) { road.material.roughnessMap = t; road.material.needsUpdate = true; } }),
+    assets.texture('concrete_layers_02/Diffuse.jpg', 1, true).then(t => { if (!disposed) { concrete.map = t; concrete.color.set(0xffffff); concrete.needsUpdate = true; } }),
+    assets.texture('concrete_layers_02/nor_gl.jpg', 1).then(t => { if (!disposed) { concrete.normalMap = t; concrete.normalScale.set(.3, .3); concrete.needsUpdate = true; } }),
+    assets.texture('leafy_grass/Diffuse.jpg', 50, true).then(t => { if (!disposed) { grass.map = t; grass.color.set(0xb4bd91); grass.needsUpdate = true; } }),
+    assets.vehicle().then(source => {
+      if (disposed) return;
+      for (const { fallback, color } of parkedCars) {
+        const detailed = detailedVehicle(source, color);
+        detailed.group.position.copy(fallback.position); fallback.visible = false; scene.add(detailed.group);
+      }
+      detailedEgo = detailedVehicle(source, 0xc99545);
+      detailedEgo.group.traverse(o => o.layers.set(1)); scene.add(detailedEgo.group);
+      ego.group.visible = false;
+      // Retain the overhead heading cue when replacing the body.
+      detailedEgo.group.add(arrow); arrow.position.y = 1.41;
+    }),
+  ]).then(results => {
+    if (disposed) return;
+    const failed = results.filter(r => r.status === 'rejected');
+    root.dataset.assets = failed.length ? 'fallback' : 'ready';
+    root.dispatchEvent(new CustomEvent('visuals-ready', { detail: { fallback: failed.length > 0 } }));
+  });
   const arrow = groundLabel('↑', '#172d37'); arrow.rotation.x = -Math.PI / 2; arrow.position.set(0, 1.601, -1.2); arrow.scale.set(.65, .65, .65); arrow.layers.set(1); ego.group.add(arrow);
   const rails = [0, 1].map(() => {
     const geometry = new T.BufferGeometry(); geometry.setAttribute('position', new T.BufferAttribute(new Float32Array(65 * 3), 3)); geometry.setDrawRange(0, 0);
     const line = new T.Line(geometry, new T.LineDashedMaterial({ color: 0x83e8f0, dashSize: .26, gapSize: .18, depthTest: true })); line.frustumCulled = false; scene.add(line); return line;
   });
   const driver = new T.PerspectiveCamera(65, 1, .08, 140), rear = new T.PerspectiveCamera(48, 1, .08, 140), left = new T.PerspectiveCamera(58, 1, .08, 140), right = new T.PerspectiveCamera(58, 1, .08, 140);
+  driver.layers.enable(2);
   left.layers.enable(1); right.layers.enable(1);
   const overhead = new T.OrthographicCamera(-12, 12, 9, -9, .1, 100); overhead.layers.enable(1); overhead.position.set(12, 35, 8.5); overhead.up.set(0, 0, -1); overhead.lookAt(12, 0, 8.5);
   const mirrorScene = new T.Scene(), mirrorCamera = new T.OrthographicCamera(-1, 1, 1, -1, 0, 2); mirrorCamera.position.z = 1;
@@ -126,7 +166,7 @@ export function createScene(root: HTMLElement, contextLost: () => void) {
   const quadMaterial = new T.MeshBasicMaterial({ depthTest: false, depthWrite: false, toneMapped: false }); mirrorScene.add(new T.Mesh(quadGeometry, quadMaterial));
   const targets = [rear, left, right].map(() => new T.WebGLRenderTarget(256, 128, { depthBuffer: true }));
   const elements = Object.fromEntries(['driver', 'overhead', 'rear', 'left', 'right'].map(name => [name, root.querySelector<HTMLElement>(`[data-view="${name}"]`)!]));
-  let width = 0, height = 0;
+  let width = 0, height = 0, previousX: number | undefined, previousZ = 0, distance = 0;
   function cameraPose(camera: T.PerspectiveCamera, s: State, lateral: number, forward: number, y: number, relativeYaw: number, slope: number) {
     const p = localPoint(s, lateral, forward), yaw = s.yaw + relativeYaw;
     camera.position.set(p.x, y, p.z); camera.lookAt(p.x + Math.sin(yaw) * 10, y + slope * 10, p.z - Math.cos(yaw) * 10);
@@ -136,18 +176,27 @@ export function createScene(root: HTMLElement, contextLost: () => void) {
     renderer.setScissor(rect.left, height - rect.bottom, rect.width, rect.height);
   }
   function visible(rect: DOMRect) { return rect.width > 0 && rect.height > 0 && rect.bottom > 0 && rect.top < height; }
-  function render(s: State, aids: boolean) {
+  function render(s: State, aids: boolean, braking = false) {
     if (width !== innerWidth || height !== innerHeight) { width = innerWidth; height = innerHeight; renderer.setSize(width, height); }
     ego.group.position.set(s.x, 0, s.z); ego.group.rotation.y = -s.yaw;
     ego.frontWheels.forEach(wheel => wheel.rotation.y = -s.steer);
     ego.rearLight.emissiveIntensity = s.brakeHold || s.speed === 0 ? 1.3 : .2;
+    cockpit.update(s);
+    if (previousX !== undefined) { const delta = Math.hypot(s.x - previousX, s.z - previousZ); if (delta < .5) distance += delta * Math.sign(s.speed); }
+    previousX = s.x; previousZ = s.z;
+    if (detailedEgo) {
+      detailedEgo.group.position.copy(ego.group.position); detailedEgo.group.rotation.y = -s.yaw;
+      detailedEgo.frontWheels.forEach(wheel => wheel.rotation.y = -s.steer);
+      detailedEgo.rearLight.emissiveIntensity = s.brakeHold || braking ? 2 : .2;
+      detailedEgo.roll(distance);
+    }
     const path = aids ? trajectory(s) : { left: [], right: [] };
     [path.left, path.right].forEach((points, index) => {
       const line = rails[index], attribute = line.geometry.getAttribute('position') as T.BufferAttribute;
       points.forEach((p, i) => attribute.setXYZ(i, p.x, .045, p.z));
       attribute.needsUpdate = true; line.geometry.setDrawRange(0, points.length); line.computeLineDistances(); line.visible = points.length > 1;
     });
-    cameraPose(driver, s, -.38, 1.65, 1.22, 0, -.12);
+    cameraPose(driver, s, -.38, 1.2, 1.18, 0, -.22);
     cameraPose(rear, s, 0, 1.6, 1.4, Math.PI, -.12);
     cameraPose(left, s, -1.01, 2.2, 1.14, Math.PI + .18, -.2);
     cameraPose(right, s, 1.01, 2.2, 1.14, Math.PI - .18, -.2);
@@ -173,6 +222,7 @@ export function createScene(root: HTMLElement, contextLost: () => void) {
     });
   }
   function dispose() {
+    disposed = true;
     renderer.setAnimationLoop(null);
     const geometries = new Set<T.BufferGeometry>(), materials = new Set<T.Material>(), textures = new Set<T.Texture>();
     for (const tree of [scene, mirrorScene]) tree.traverse(object => {
@@ -183,7 +233,7 @@ export function createScene(root: HTMLElement, contextLost: () => void) {
       });
     });
     geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose()); textures.forEach(t => t.dispose()); targets.forEach(t => t.dispose());
-    sun.shadow.dispose(); renderer.dispose(); renderer.domElement.remove();
+    assets.dispose(); sun.shadow.dispose(); renderer.dispose(); renderer.domElement.remove();
   }
-  return { renderer, render, dispose };
+  return { renderer, render, dispose, ready };
 }

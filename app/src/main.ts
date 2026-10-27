@@ -18,7 +18,7 @@ root.innerHTML = `
         <div class="pause-cover" hidden><strong>練習已暫停</strong><span>按 Esc 或「繼續練習」返回</span></div>
         <div class="render-error" hidden role="alert"></div>
       </div>
-      <div class="driver-footer"><span class="view-dot"></span><span>留意後視鏡，慢慢倒入 03 號車位</span><span class="keyboard-note">鍵盤操作</span></div>
+      <div class="driver-footer"><span class="view-dot"></span><span data-visual-status>正在載入場景細節…</span><span class="keyboard-note">鍵盤操作</span></div>
     </section>
     <aside class="sidebar" aria-label="俯瞰與車輛操控">
       <section class="overhead panel"><div class="panel-heading"><h2>俯瞰輔助</h2><label class="aids-toggle"><input type="checkbox" data-aids checked>軌跡輔助</label></div><div class="map-window" data-view="overhead"></div><div class="map-legend"><span><i class="legend-car"></i>你的車</span><span><i class="legend-target"></i>目標 03</span><span>車頭朝箭頭方向</span></div></section>
@@ -29,7 +29,7 @@ root.innerHTML = `
     </aside>
   </div>
   <section class="feedback" aria-label="練習狀態"><div class="coach"><span class="coach-icon">↳</span><div><strong data-coach-title>準備倒車</strong><p data-message role="status" aria-live="polite">已保持煞車，切入 R 檔後，再放開煞車。</p></div></div><div class="metric"><small>最近障礙</small><strong data-clearance>—<span>m</span></strong></div><div class="metric"><small>碰撞次數</small><strong data-collisions>0</strong></div></section>
-  <footer class="page-footer"><span>↑ 油門　↓ / 空白鍵 煞車　← → 轉向　1–4 換檔</span><span>低速操作示意 · 尚未以真車校準</span></footer>`;
+  <footer class="page-footer"><span>↑ 油門　↓ / 空白鍵 煞車　← → 轉向　1–4 換檔</span><span>低速操作示意 · 尚未以真車校準　<a href="${import.meta.env.BASE_URL}assets/credits.html" target="_blank" rel="noopener">素材來源</a></span></footer>`;
 
 const $ = <T extends HTMLElement = HTMLElement>(selector: string) => root.querySelector<T>(selector)!;
 let state = createState(), paused = false, aids = true, centerAssist = false;
@@ -95,6 +95,9 @@ function renderFailure(reason: string) {
 updateUI();
 try {
   const graphics = createScene(root, () => renderFailure('3D 畫面已中斷，請點「重新開始」重新載入。'));
+  void graphics.ready.then(() => {
+    $('[data-visual-status]').textContent = root.dataset.assets === 'fallback' ? '部分場景細節未載入，仍可繼續練習；重新整理可重試。' : '留意後視鏡，慢慢倒入 03 號車位';
+  });
   graphics.renderer.setAnimationLoop(time => {
     const elapsed = lastTime ? Math.max(0, (time - lastTime) / 1000) : 0; lastTime = time;
     if (!paused && !unavailable) {
@@ -105,7 +108,7 @@ try {
       while (accumulator >= 1 / 120) { step(state, controls, 1 / 120); accumulator -= 1 / 120; }
       if (Math.abs(state.steer) < .001) centerAssist = false;
     }
-    if (!unavailable) graphics.render(state, aids);
+    if (!unavailable) graphics.render(state, aids, input.read().brake);
     uiElapsed += elapsed;
     if (uiElapsed > .05) { updateUI(); uiElapsed = 0; }
   });

@@ -7,3 +7,6 @@
 .instrument{top:10px;padding-top:7px}.instrument>span{position:absolute;left:12%;top:12px;font-size:19px}.instrument strong{font-size:34px;line-height:1.1}.instrument small{font-size:9px}
 @media(max-width:540px){.instrument{top:3px;padding-top:4px}.instrument strong{font-size:27px}.instrument>span{top:8px;font-size:16px;left:10%}.instrument small{font-size:8px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+/* The live 3D interior replaces the original CSS cockpit. */
+.realistic-cockpit .cockpit,.realistic-cockpit .windshield-frame{display:none}.page-footer a{color:#95d4e5;text-underline-offset:3px}.realistic-cockpit .mirror{border-color:#0d151d;box-shadow:inset 0 0 0 1px #70808a,0 6px 14px #0008}.realistic-cockpit .left,.realistic-cockpit .right{bottom:35%}

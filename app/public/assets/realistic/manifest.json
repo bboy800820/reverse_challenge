@@ -1,0 +1,70 @@
+[
+  {
+    "file": "asphalt_02/Diffuse.jpg",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/asphalt_02/asphalt_02_diff_1k.jpg",
+    "bytes": 731707,
+    "sha256": "1aa5ce99f58a625c71d48cfc3e68b65ca85ccb00f39e045c0a928608a0ea25ed"
+  },
+  {
+    "file": "asphalt_02/nor_gl.jpg",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/asphalt_02/asphalt_02_nor_gl_1k.jpg",
+    "bytes": 1240122,
+    "sha256": "42a1c381b53204e83a982db2864479a30bc127bbdeebb1006f8ee51bff099df3"
+  },
+  {
+    "file": "asphalt_02/Rough.jpg",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/asphalt_02/asphalt_02_rough_1k.jpg",
+    "bytes": 544032,
+    "sha256": "70ba3edc65525eb4dc366cf010ca7ae0bd34e0251ff0225c2dad627a873d0712"
+  },
+  {
+    "file": "concrete_layers_02/Diffuse.jpg",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_layers_02/concrete_layers_02_diff_1k.jpg",
+    "bytes": 598800,
+    "sha256": "cca314fbb793e3928111912f1d6d4d79edf4420402e56019d70fec0bdc2efca5"
+  },
+  {
+    "file": "concrete_layers_02/nor_gl.jpg",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_layers_02/concrete_layers_02_nor_gl_1k.jpg",
+    "bytes": 734532,
+    "sha256": "ee35d817b5fa26f824479ef9d3a5ab308f4f33846c7d62d6583457dc900c6049"
+  },
+  {
+    "file": "leafy_grass/Diffuse.jpg",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/leafy_grass/leafy_grass_diff_1k.jpg",
+    "bytes": 1195394,
+    "sha256": "cfa40bc9d9417d1852db8753a8d5917f110c40101179f63543c382e39bc05e4a"
+  },
+  {
+    "file": "daylight.hdr",
+    "source": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloofendal_48d_partly_cloudy_puresky_1k.hdr",
+    "bytes": 1435119,
+    "sha256": "fd94c84997b8a3c353b62c2125a9b44e19509956986a126e472684432a02d798"
+  },
+  {
+    "file": "ferrari.glb",
+    "source": "https://raw.githubusercontent.com/mrdoob/three.js/r186/examples/models/gltf/ferrari.glb",
+    "source_sha256": "cafe3f48da6797aa9bde75ca768bc5b57db366575fd233e90df186ae988a876e",
+    "optimization": "glTF Transform 4.5.1; remove unused attributes, weld, simplify ratio 0.15/error 0.005, rebuild smooth normals, Draco; scripts/optimize-vehicle.cjs",
+    "bytes": 317468,
+    "sha256": "e0403652800a5128a59f742d95ac369dab46f2841af84a2937b23ce0cde5e9f2"
+  },
+  {
+    "file": "draco/LICENSE",
+    "source": "https://raw.githubusercontent.com/google/draco/1.5.7/LICENSE",
+    "bytes": 13898,
+    "sha256": "d3709b0fb4b8a94bbb1d02b8a2e484f258b0d9c5c5a01f940391f3fe662cd1a4"
+  },
+  {
+    "file": "draco/draco_wasm_wrapper.js",
+    "source": "three@0.186.1 / Google Draco",
+    "bytes": 58456,
+    "sha256": "8bb2952d2ba7d67e1414f8df819410cb0434a666be53f671fff75f68843d76f6"
+  },
+  {
+    "file": "draco/draco_decoder.wasm",
+    "source": "three@0.186.1 / Google Draco",
+    "bytes": 192420,
+    "sha256": "a680d927bed9cb864ddbd63521868891af2bfbe755092761b4837487618df8ac"
+  }
+]

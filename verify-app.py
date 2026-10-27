@@ -15,6 +15,7 @@ with sync_playwright() as p:
     page.goto(os.environ.get('PARKING_URL', 'http://127.0.0.1:5187'))
     page.locator('[data-shift="P"]').wait_for(timeout=6000)
     page.wait_for_function("document.querySelector('#app').dataset.ready === 'true'", timeout=20000)
+    page.wait_for_function("document.querySelector('#app').dataset.assets === 'ready'", timeout=60000)
     root = page.locator('#app')
     def value(name): return float(root.get_attribute('data-' + name))
     def wait_speed(expression):

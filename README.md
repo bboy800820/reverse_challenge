@@ -2,7 +2,7 @@
 
 深藍儀表板、駕駛視角、三面後視鏡與俯瞰輔助。正式程式位於 `app/`；原本的概念圖與畫面原型保留供比較。
 
-![深藍雙視角實際畫面](assets/previews/navy-3d-desktop.png)
+![深藍雙視角實際畫面](assets/previews/realistic-desktop.png)
 
 ## 開啟
 
@@ -35,7 +35,11 @@ Esc 暫停／繼續。切到其他視窗時自動暫停；恢復後會保持煞�
 
 ## 本版內容與限制
 
-使用 Three.js 同一場景繪製五個視角，鏡面影像有水平反射。車身與場景採程式建立的簡化模型，未達概念圖的寫實程度。車輛使用低速單軌模型與矩形車身碰撞；車身 1.8 × 4.5 m、軸距 2.7 m、前輪最大角度 32°、方向盤顯示比例 14:1、蠕行 0.32 m/s；這些數值尚未以特定實車校準。
+使用 Three.js 同一場景繪製五個視角，鏡面影像有水平反射。寫實視覺版加入細緻車模、HDR 天空反射、瀝青／混凝土／草地紋理、立體座艙及樹葉。方向盤、儀表與前輪跟隨操作，煞車燈回應煞車。這是即時 3D 場景，並未達概念圖的照片級細節。
+
+目前使用公開授權的 Ferrari 458 Italia 模型作為外觀示意，尺寸和材質經調整；概念圖中的 SUV、座艙和本版車模並非相同車款。車輛使用低速單軌模型與矩形車身碰撞；車身 1.8 × 4.5 m、軸距 2.7 m、前輪最大角度 32°、方向盤顯示比例 14:1、蠕行 0.32 m/s；這些數值尚未以特定實車校準。
+
+場景素材約 7.1 MB，位於 `app/public/assets/realistic/`，隨 Pages 一起發布；執行時不呼叫第三方素材服務。車模已由 358,788 面減為 56,520 面，並重建平滑法線。載入期間可操作，部分素材失敗會提示並保留基礎場景。來源、修改說明及授權見 [素材署名頁](app/public/assets/credits.html) 與 [下載紀錄](app/public/assets/realistic/manifest.json)。在 Windows 重新下載可執行 `python scripts/fetch-visual-assets.py`，需要網路與已安裝的 npm 依賴；車模準備使用固定版本 glTF Transform 4.5.1，不加入網頁執行時依賴。
 
 本版用來確認操作與視野，尚未驗證真車手感、鏡面視野及訓練成效。後續可換成特定車款的模型、轉向／加減速數據，再加入其他停車情境與回放。
 
@@ -43,6 +47,8 @@ Esc 暫停／繼續。切到其他視窗時自動暫停；恢復後會保持煞�
 
 - `app/src/simulation.ts`：車輛、換檔、碰撞及停車判定。
 - `app/src/scene.ts`：3D 場景、相機、鏡面與軌跡。
+- `app/src/cockpit.ts`、`detailed-vehicle.ts`、`vegetation.ts`：立體座艙、車輛外觀及植被。
+- `app/src/visual-assets.ts`：本機素材載入與資源生命週期。
 - `app/src/input.ts`：鍵盤與滑鼠／觸控的共同輸入處理。
 - `app/src/main.ts`、`style.css`：儀表板與操作提示。
 - `assets/style-concepts/`：四張風格圖，採用 D。
@@ -52,7 +58,7 @@ Esc 暫停／繼續。切到其他視窗時自動暫停；恢復後會保持煞�
 
 ## 驗證
 
-在 `app/` 執行 `npm test` 和 `npm run build`。啟動預覽服務後，在專案根目錄執行 `python verify-app.py`、`python verify-brakes.py`、`python verify-render.py`（需要 Python、Playwright、Pillow 與 Edge）。檢查涵蓋車輛操作、一般及嵌入式鍵盤事件的煞車／釋放，以及一般與高解析度螢幕的相機取景。這些檢查不等於實車校準。
+在 `app/` 執行 `npm test` 和 `npm run build`。啟動預覽服務後，在專案根目錄依序執行 `python verify-app.py`、`python verify-brakes.py`、`python verify-render.py`、`python verify-visuals.py`（需要 Python、Playwright、Pillow 與 Edge）。檢查涵蓋車輛操作、一般及嵌入式鍵盤事件的煞車／釋放、高解析度螢幕的相機取景，以及模型、天空、路面材質各自失敗時的操作。`python scripts/preview-realistic.py` 會產生桌面與手機實際截圖。這些檢查不等於實車校準。
 
 開發技能來源：[frontend-design](https://github.com/anthropics/skills/tree/main/skills/frontend-design)、[Three.js skills](https://github.com/CloudAI-X/threejs-skills)。技能非執行模擬器所必需。
 

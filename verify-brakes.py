@@ -9,6 +9,7 @@ with sync_playwright() as p:
     page.on('pageerror', lambda e: errors.append(str(e)))
     page.goto(os.environ.get('PARKING_URL', 'http://127.0.0.1:5187'))
     page.wait_for_function("document.querySelector('#app').dataset.ready === 'true'")
+    page.wait_for_function("document.querySelector('#app').dataset.assets === 'ready'", timeout=60000)
     speed = "Number(document.querySelector('#app').dataset.speed)"
     for gear in ['D', 'R']:
         for code, key in [('', 'ArrowDown'), ('', ' '), ('Unidentified', 'ArrowDown'), ('Unidentified', ' '), ('native', 'ArrowDown'), ('native', 'Space')]:
