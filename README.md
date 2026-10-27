@@ -6,9 +6,19 @@
 
 ## 開啟
 
+線上版：[https://bboy800820.github.io/reverse_challenge/](https://bboy800820.github.io/reverse_challenge/)
+
 雙擊本資料夾的 **launch.cmd**，瀏覽器會開啟 <http://127.0.0.1:5187>。若預覽服務已在執行，直接開啟該網址即可。關閉啟動程式的視窗會停止服務。
 
 需要 Node.js 與 npm，建議 Node.js 24 LTS。此電腦已安裝依賴；搬到其他電腦時，第一次啟動會執行 `npm ci`，需要網路。不要直接用瀏覽器開 `app/index.html`，請透過啟動程式。
+
+## 更新線上網站
+
+推送程式到 `main` 後，GitHub Actions 會依序安裝依賴、執行測試、建置 `app/dist`，再部署到 GitHub Pages。可在儲存庫的 [Actions](https://github.com/bboy800820/reverse_challenge/actions/workflows/deploy-pages.yml) 查看進度或手動執行。
+
+Pages 的發布來源須設為 **GitHub Actions**。`app/vite.config.ts` 的 `base` 設為 `/reverse_challenge/`，讓網站正確載入子目錄下的程式與樣式。若日後更換儲存庫名稱或自訂網域，需要一併調整此設定。網站只發佈 `app/dist`，概念圖、測試及開發文件保留在儲存庫。
+
+部署設定參考 [Vite 官方說明](https://vite.dev/guide/static-deploy.html#github-pages)及 [GitHub Pages 工作流程說明](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)。
 
 ## 怎麼操作
 

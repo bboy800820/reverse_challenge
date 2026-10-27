@@ -1,4 +1,5 @@
 """Regression: real keyboard and key-only browser events must operate the brake."""
+import os
 from playwright.sync_api import sync_playwright
 
 with sync_playwright() as p:
@@ -6,7 +7,7 @@ with sync_playwright() as p:
     page = browser.new_page(viewport={'width': 1440, 'height': 1000})
     errors = []
     page.on('pageerror', lambda e: errors.append(str(e)))
-    page.goto('http://127.0.0.1:5187')
+    page.goto(os.environ.get('PARKING_URL', 'http://127.0.0.1:5187'))
     page.wait_for_function("document.querySelector('#app').dataset.ready === 'true'")
     speed = "Number(document.querySelector('#app').dataset.speed)"
     for gear in ['D', 'R']:
