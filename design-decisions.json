@@ -1,0 +1,100 @@
+{
+  "project": "倒車模擬器",
+  "stage": "第一版 Three.js 雙視角互動模擬；尚未進行實車校準",
+  "application": {
+    "source": "app/",
+    "launcher": "launch.cmd",
+    "previewUrl": "http://127.0.0.1:5187",
+    "screenshots": "assets/previews/",
+    "approvedDesign": "docs/superpowers/specs/2026-10-27-navy-simulator.md",
+    "confirmedOn": "2026-10-27",
+    "renderer": "Three.js shared scene, driver + three mirrored cameras + orthographic overhead",
+    "status": "鍵盤煞車相容性修正完成：21 項單元測試、12 組 D/R 煞車回歸、完整瀏覽器操作與建置通過；第一版高解析度取景及暫停恢復已驗證"
+  },
+  "selectedStyle": {
+    "id": "D",
+    "name": "深藍儀表板",
+    "referenceImage": "assets/style-concepts/D-navy-instruments.png",
+    "background": "#091827",
+    "panel": "#0E2235",
+    "accent": "#65C8E5"
+  },
+  "confirmedRequirements": [
+    "電腦畫面練習低速倒車，減少實車練習的碰撞成本",
+    "第一階段使用鍵盤",
+    "駕駛視角與俯瞰輔助小窗同時顯示",
+    "採用 D 深藍儀表板的介面風格",
+    "加入 D／R 換檔，操作方式更接近汽車",
+    "專案素材統一放在專案資料夾"
+  ],
+  "prototype": {
+    "inlineSource": "navy-driving-prototype.html",
+    "standalonePreview": "navy-preview.html",
+    "previousComparison": "reverse-views-prototype.html",
+    "rendering": "Canvas 2D projection; no production 3D engine yet",
+    "controls": {
+      "1": "P 檔",
+      "2": "R 檔",
+      "3": "N 檔",
+      "4": "D 檔",
+      "ArrowUp": "油門",
+      "ArrowDown": "煞車",
+      "ArrowLeft/ArrowRight": "方向盤轉向",
+      "C": "方向盤回正",
+      "Space": "煞車",
+      "Escape": "暫停"
+    },
+    "proposedBehaviorsForReview": [
+      "停穩並踩住煞車才能換檔",
+      "D／R 決定油門驅動的方向",
+      "D／R 檔鬆煞車後有簡化低速蠕行",
+      "P 檔保持停止，N 檔不提供驅動",
+      "煞車優先於油門",
+      "提供煞車保持按鈕，方便滑鼠選檔",
+      "視窗失焦時暫停模擬"
+    ],
+    "limitations": [
+      "車型尺寸、方向盤比例、蠕行速度、加減速為原型假設",
+      "目前車內與場景為簡化圖形，不等同生圖概念圖的寫實程度",
+      "尚未進行實車轉向半徑、鏡面視野或訓練成效校準"
+    ]
+  },
+  "skillsResearch": {
+    "checkedOn": "2026-10-27",
+    "queries": ["threejs", "vehicle", "physics"],
+    "status": "三項技能已安裝至本專案 .agents/skills/",
+    "candidates": [
+      {
+        "name": "threejs-fundamentals",
+        "publisher": "CloudAI-X (community)",
+        "use": "3D 場景、攝影機、渲染迴圈；可支援雙視角的正式實作",
+        "installsApprox": "17.7K",
+        "repositoryStarsApprox": "3.8K",
+        "url": "https://skills.sh/cloudai-x/threejs-skills/threejs-fundamentals",
+        "source": "https://github.com/CloudAI-X/threejs-skills",
+        "installCommand": "npx skills add cloudai-x/threejs-skills --skill threejs-fundamentals"
+      },
+      {
+        "name": "threejs-loaders",
+        "publisher": "CloudAI-X (community)",
+        "use": "載入車輛與停車場 glTF／GLB 模型及材質資產",
+        "installsApprox": "13.1K",
+        "repositoryStarsApprox": "3.8K",
+        "url": "https://skills.sh/cloudai-x/threejs-skills/threejs-loaders",
+        "source": "https://github.com/CloudAI-X/threejs-skills",
+        "installCommand": "npx skills add cloudai-x/threejs-skills --skill threejs-loaders"
+      },
+      {
+        "name": "frontend-design",
+        "publisher": "Anthropic (official)",
+        "use": "深藍儀表板、控制區與響應式介面設計",
+        "installsApprox": "1.0M",
+        "repositoryStarsApprox": "184.0K",
+        "url": "https://skills.sh/anthropics/skills/frontend-design",
+        "source": "https://github.com/anthropics/skills/tree/main/skills/frontend-design",
+        "installCommand": "npx skills add anthropics/skills --skill frontend-design"
+      }
+    ],
+    "finding": "本次搜尋沒有找到可直接採用、且具實車校準證據的倒車訓練 skill；車輛運動與鏡面視野仍需獨立建模驗證。"
+  }
+}

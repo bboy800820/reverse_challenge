@@ -1,0 +1,8 @@
+app/node_modules/
+app/dist/
+*.log
+__pycache__/
+.agents/skills/
+.env
+.env.*
+!.env.example

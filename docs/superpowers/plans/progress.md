@@ -1,0 +1,17 @@
+# Execution ledger: 2026-10-27-navy-simulator.md
+
+Pre-flight: simulation supplies world-space x/z/yaw and signed speed to scene and UI. Yaw zero faces -Z; positive yaw turns toward +X; Three.js vehicle rotation.y is -yaw. UI and collision share vehicle dimensions and world obstacles.
+Pre-flight: renderer uses DOM view rectangles, one state and one canvas; input has multiple sources so one released key cannot cancel another held brake.
+Workflow adaptation: existing project has no Git repository; preserve all prototypes, implement in app/, and retain this ledger instead of using git-only workspace scripts.
+Design authority: user selected D navy instruments and confirmed continuation after linked design-decisions.json. No new product scope beyond this design is required.
+
+Task 1: complete. Observed all 11 behavioral tests fail against stubs, then pass with simulation implementation. Initial Vitest 5 excluded installed Node 25; selected compatible patched Vitest 4.1.12. npm install reports zero vulnerabilities.
+Task 2: browser check first failed because interactive app did not exist. Implemented all five views and controls; TypeScript/build pass. Browser found rotated full-width steering glyph intercepting center-button clicks. Restrict decoration to a 60px square and disable its pointer events; rerunning original behavior check.
+Task 2: interaction check now passes, including real movement, gear interlock, overlapping brake inputs, held steering, pause/blur/reset, 320/390/768px layout and no page errors. Steering assertion waits for the documented 20Hz UI update after keyup; no change to simulation.
+Task 2: high-DPI image comparison caught rear mirror cropping (mean pixel difference 35.40/255). Three.js setViewport applies display pixel ratio even after setRenderTarget; removed redundant viewport override so target's physical-pixel viewport is respected. Verify same camera framing at DPR 1 and 2 before completion.
+Task 2: complete. High-DPI regression now passes for rear/left/right/overhead (mean RGB differences 2.85, 2.55, 1.47, 3.87; threshold 8). Inspected desktop and mobile screenshots. Moved dashboard speed text above the steering rim after visual inspection.
+Task 3: launcher, README, local skills and application design record are in place. Fresh final review requested before final verification.
+Final review: fresh reviewer reported one Important issue, no Critical/Minor findings and no declined-to-judge items. Resume retained pre-pause velocity and moved ~0.169m despite brake hold. Browser regression paused above 0.5m/s and failed the zero-speed-on-resume assertion. Fixed resume to set speed=0 while preserving position and enabling brake hold. Running regression and full suite.
+Final review independently exercised WebGL startup failure/context loss: fallback is visible, driving controls disabled, reset remains available and reload recovers.
+Final: fixed moving pause/resume drift — real browser regression RED → GREEN; full model suite 11/11, complete browser interaction checks pass with zero page errors; DPR comparison passes on all four checked views.
+Task 3: complete. Final npm run build passed (Three.js bundle 557.93kB, gzip 143.15kB; Vite's default 500kB chunk advisory remains, acceptable for this local application). Final screenshots inspected and saved in assets/previews/. HTTP preview and launch.cmd available. No deferred review findings. No merge/publish step applies because this is a local project without a Git repository; all files and durable records retained.

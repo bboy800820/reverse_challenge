@@ -1,0 +1,164 @@
+<!-- Throwaway visual prototype: overhead vs cockpit + overhead. Simplified motion, not a calibrated driving trainer. -->
+<div id="reverse-demo" class="viz-carousel" aria-label="倒車模擬器畫面比較" data-previous-label="上一個方案" data-next-label="下一個方案">
+  <section data-variant="俯瞰練習" aria-label="俯瞰練習方案"><div class="rp-app" data-layout="overhead"></div></section>
+  <section data-variant="駕駛座＋俯瞰" aria-label="駕駛座與俯瞰方案" hidden><div class="rp-app" data-layout="cockpit"></div></section>
+</div>
+<style>
+#reverse-demo .rp-app{--rp-bg:light-dark(#f2f4f5,#10151c);--rp-panel:light-dark(#fff,#19212a);--rp-ink:light-dark(#1b2832,#e6edf2);--rp-dim:light-dark(#63727e,#9eafbe);--rp-line:light-dark(#e1e7eb,#2b3743);--rp-accent:light-dark(#177b67,#6dddc3);--rp-soft:light-dark(#e4f3ed,#243c37);--rp-road:light-dark(#35434b,#26333b);--rp-roadline:light-dark(#d5e0df,#c4d3d2);--rp-car:#edbb72;--rp-green:#75d9b8;--rp-red:light-dark(#b73d36,#ff9285);--rp-key:light-dark(#f4f7f8,#242f3a);--rp-sky:light-dark(#ccdee0,#7c969d);--rp-ground:light-dark(#536168,#3b4a53);color:var(--rp-ink);background:var(--rp-bg);font:14px/1.5 "Segoe UI","Microsoft JhengHei",sans-serif;border:1px solid var(--rp-line);border-radius:18px;overflow:hidden;min-width:0;isolation:isolate;}
+#reverse-demo .rp-app *{box-sizing:border-box;}
+#reverse-demo .rp-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 22px;background:var(--rp-panel);border-bottom:1px solid var(--rp-line);flex-wrap:wrap;}
+#reverse-demo .rp-brand{display:flex;align-items:center;gap:11px;}
+#reverse-demo .rp-brandmark{width:34px;height:34px;border-radius:10px;background:var(--rp-soft);display:grid;place-items:center;color:var(--rp-accent);}
+#reverse-demo .rp-brand strong{display:block;font-size:15px;font-weight:600;letter-spacing:.04em;}
+#reverse-demo .rp-brand small{display:block;color:var(--rp-dim);font-size:11px;letter-spacing:.16em;}
+#reverse-demo .rp-headmeta{display:flex;gap:9px;align-items:center;flex-wrap:wrap;color:var(--rp-dim);font-size:12px;}
+#reverse-demo .rp-badge{padding:4px 9px;border-radius:6px;background:var(--rp-key);font-size:11px;}
+#reverse-demo .rp-content{display:grid;grid-template-columns:minmax(0,1fr) 236px;gap:16px;padding:18px;}
+#reverse-demo .rp-main{min-width:0;}
+#reverse-demo .rp-toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;min-height:38px;margin-bottom:10px;flex-wrap:wrap;}
+#reverse-demo .rp-scene-title{font-weight:600;font-size:15px;}
+#reverse-demo .rp-scene-title span{font-weight:400;font-size:12px;color:var(--rp-dim);margin-left:8px;}
+#reverse-demo .rp-switch{display:flex;align-items:center;gap:7px;font-size:12px;white-space:nowrap;}
+#reverse-demo input{accent-color:var(--rp-accent);}
+#reverse-demo .rp-stage{height:398px;border-radius:12px;overflow:hidden;position:relative;background:var(--rp-road);}
+#reverse-demo canvas{display:block;width:100%;height:100%;}
+#reverse-demo .rp-map-meta{position:absolute;top:14px;left:15px;display:flex;gap:7px;align-items:center;color:#e6efef;font-size:11px;letter-spacing:.08em;background:#1a2930d9;padding:5px 9px;border-radius:5px;}
+#reverse-demo .rp-map-meta i{width:6px;height:6px;border-radius:50%;background:var(--rp-green);}
+#reverse-demo .rp-map-legend{position:absolute;bottom:13px;left:15px;color:#dae6e6;font-size:11px;display:flex;gap:15px;align-items:center;background:#1a2930d9;padding:5px 9px;border-radius:5px;}
+#reverse-demo .rp-dot{width:7px;height:7px;display:inline-block;border-radius:50%;background:var(--rp-car);margin-right:5px;}
+#reverse-demo .rp-dot.goal{background:var(--rp-green);border-radius:1px;}
+#reverse-demo .rp-dot.path{height:2px;width:13px;background:var(--rp-green);border-radius:0;}
+#reverse-demo .rp-side{display:flex;flex-direction:column;gap:12px;min-width:0;}
+#reverse-demo .rp-instrument{background:var(--rp-panel);border:1px solid var(--rp-line);border-radius:12px;padding:16px;}
+#reverse-demo .rp-label{font-size:11px;color:var(--rp-dim);letter-spacing:.08em;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+#reverse-demo .rp-live{display:flex;align-items:baseline;gap:9px;margin-top:8px;}
+#reverse-demo .rp-gear{font-size:26px;font-weight:600;width:38px;}
+#reverse-demo .rp-speed{font-size:29px;font-weight:500;line-height:1.2;font-variant-numeric:tabular-nums;}
+#reverse-demo .rp-unit{font-size:11px;color:var(--rp-dim);}
+#reverse-demo .rp-wheel{width:91px;height:91px;margin:13px auto 9px;border:8px solid var(--rp-ink);border-radius:50%;position:relative;transition:transform .08s linear;}
+#reverse-demo .rp-wheel:before{content:"";position:absolute;left:0;right:0;top:34px;height:7px;background:var(--rp-ink);}
+#reverse-demo .rp-wheel:after{content:"";position:absolute;top:36px;bottom:0;left:34px;width:7px;background:var(--rp-ink);}
+#reverse-demo .rp-wheel b{position:absolute;width:5px;height:9px;background:var(--rp-car);top:-8px;left:35px;}
+#reverse-demo .rp-steertext{text-align:center;font-size:13px;font-variant-numeric:tabular-nums;margin-bottom:10px;}
+#reverse-demo .rp-steertext small{display:block;color:var(--rp-dim);font-size:11px;}
+#reverse-demo .rp-button{font:inherit;font-size:12px;padding:8px 10px;border:1px solid var(--rp-line);border-radius:7px;background:var(--rp-panel);color:var(--rp-ink);display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;}
+#reverse-demo .rp-button:hover{background:var(--rp-key);}
+#reverse-demo .rp-button:active,#reverse-demo .rp-button[data-held="true"]{background:var(--rp-soft);border-color:var(--rp-accent);color:var(--rp-accent);}
+#reverse-demo .rp-button.rp-reset{background:var(--rp-ink);color:var(--rp-panel);border-color:var(--rp-ink);}
+#reverse-demo .rp-center{width:100%;}
+#reverse-demo .rp-lesson{padding:14px 16px;flex:1;background:var(--rp-soft);border-radius:12px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;}
+#reverse-demo .rp-lesson .rp-label{color:var(--rp-accent);}
+#reverse-demo .rp-lesson strong{font-weight:500;display:block;margin:5px 0;font-size:14px;}
+#reverse-demo .rp-lesson p{font-size:12px;color:var(--rp-dim);margin:0;}
+#reverse-demo .rp-status{font-size:12px;color:var(--rp-accent);display:flex;align-items:center;gap:6px;}
+#reverse-demo .rp-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:13px 18px;background:var(--rp-panel);border-top:1px solid var(--rp-line);}
+#reverse-demo .rp-keys{display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
+#reverse-demo .rp-keygroup{display:flex;gap:4px;}
+#reverse-demo .rp-footer .rp-button{padding:7px 9px;}
+#reverse-demo .rp-bottomnote{font-size:11px;color:var(--rp-dim);}
+#reverse-demo .rp-footerend{display:flex;align-items:center;gap:12px;}
+#reverse-demo .rp-caption{min-height:34px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--rp-dim);padding:4px 1px 0;gap:10px;flex-wrap:wrap;}
+#reverse-demo .rp-mini{height:196px;position:relative;border-radius:9px;overflow:hidden;background:var(--rp-road);margin-top:10px;}
+#reverse-demo [data-layout="cockpit"] .rp-instrument{padding:13px;}
+#reverse-demo [data-layout="cockpit"] .rp-live{margin-top:4px;}
+#reverse-demo .rp-compactsteer{display:flex;align-items:center;gap:10px;}
+#reverse-demo .rp-compactsteer .rp-wheel{width:58px;height:58px;border-width:5px;margin:9px 5px;flex-shrink:0;}
+#reverse-demo .rp-compactsteer .rp-wheel:before{top:21px;height:5px;}
+#reverse-demo .rp-compactsteer .rp-wheel:after{top:23px;left:21px;width:5px;}
+#reverse-demo .rp-compactsteer .rp-wheel b{top:-5px;left:22px;height:6px;width:4px;}
+#reverse-demo .rp-compactsteer .rp-steertext{text-align:left;margin:0;font-size:12px;}
+#reverse-demo .rp-mirror{position:absolute;top:19px;left:50%;transform:translateX(-50%);width:37%;max-width:220px;height:87px;border:5px solid #222a30;border-radius:10px;background:#617277;box-shadow:0 5px 10px #10182033;overflow:hidden;}
+#reverse-demo .rp-mirrorlabel{position:absolute;top:4px;left:8px;padding:2px 5px;border-radius:3px;background:#1b282ec9;color:#e4ecec;font-size:10px;}
+#reverse-demo .rp-windshield{position:absolute;inset:0;pointer-events:none;border-top:9px solid #1d252b;box-shadow:inset 12px 0 0 #26323a,inset -12px 0 0 #26323a;}
+#reverse-demo .rp-dash{position:absolute;bottom:-2px;left:-3%;width:106%;height:114px;background:linear-gradient(#344049,#18232c 25%);border-top:4px solid #4a565d;border-radius:48% 48% 0 0/18% 18% 0 0;}
+#reverse-demo .rp-cockpitwheel{position:absolute;bottom:-47px;left:17%;width:171px;height:171px;border:17px solid #10191f;border-radius:50%;box-shadow:0 0 0 2px #4b555e,inset 0 0 0 2px #4b555e;transform-origin:center;}
+#reverse-demo .rp-cockpitwheel:before{content:"";position:absolute;top:64px;left:0;right:0;height:17px;background:#1f2b33;border-top:2px solid #5e6c75;}
+#reverse-demo .rp-cockpitwheel:after{content:"";position:absolute;top:66px;left:60px;bottom:0;width:20px;background:#1f2b33;}
+#reverse-demo .rp-cockpitwheel b{position:absolute;left:62px;top:-17px;width:8px;height:17px;background:var(--rp-car);}
+#reverse-demo .rp-dashscreen{position:absolute;bottom:29px;right:17%;background:#101b21;border:1px solid #55616b;border-radius:8px;padding:8px 13px;color:#d4e5df;font-size:20px;letter-spacing:.03em;}
+#reverse-demo .rp-dashscreen small{font-size:10px;color:#96aaa9;margin-left:7px;}
+#reverse-demo .rp-driver-tag{position:absolute;top:19px;left:21px;background:#1b282ee0;color:#e4ecec;padding:5px 9px;border-radius:5px;font-size:11px;}
+#reverse-demo .rp-side-mirror{position:absolute;top:53%;width:19%;height:71px;border:5px solid #29343c;background:#71858b;overflow:hidden;border-radius:8px;}
+#reverse-demo .rp-side-mirror.left{left:8px;transform:skewY(6deg);}
+#reverse-demo .rp-side-mirror.right{right:8px;transform:skewY(-6deg);}
+#reverse-demo .rp-warning{color:var(--rp-red);}
+@media(max-width:760px){#reverse-demo .rp-content{grid-template-columns:minmax(0,1fr) 190px;padding:12px;gap:12px;}#reverse-demo .rp-head{padding:14px;}#reverse-demo .rp-headmeta .rp-badge:first-child{display:none;}#reverse-demo .rp-instrument{padding:12px;}#reverse-demo .rp-footerend .rp-bottomnote{display:none;}#reverse-demo .rp-cockpitwheel{left:12%;width:148px;height:148px;bottom:-40px;}#reverse-demo .rp-cockpitwheel:before{top:52px;}#reverse-demo .rp-cockpitwheel:after{top:55px;left:48px;}#reverse-demo .rp-cockpitwheel b{left:51px;}#reverse-demo .rp-dashscreen{right:10%;}}
+@media(max-width:550px){#reverse-demo .rp-content{display:flex;flex-direction:column;}#reverse-demo .rp-stage{height:325px;}#reverse-demo .rp-side{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;}#reverse-demo .rp-wheel{width:61px;height:61px;border-width:6px;margin:9px auto;}#reverse-demo .rp-wheel:before{top:22px;height:5px;}#reverse-demo .rp-wheel:after{left:22px;top:24px;width:5px;}#reverse-demo .rp-wheel b{left:22px;top:-6px;height:7px;}#reverse-demo .rp-lesson{padding:12px;}#reverse-demo .rp-instrument{padding:12px;}#reverse-demo .rp-compactsteer{flex-wrap:wrap;gap:0;}#reverse-demo .rp-compactsteer .rp-steertext{font-size:11px;}#reverse-demo .rp-mini{height:171px;}#reverse-demo .rp-side .rp-live{margin-top:4px;}#reverse-demo .rp-footer{gap:10px;padding:12px;}#reverse-demo .rp-footerend{width:100%;justify-content:flex-end;}#reverse-demo .rp-mirror{width:40%;height:70px;}#reverse-demo .rp-headmeta{gap:4px;}#reverse-demo .rp-brand small{font-size:10px;}#reverse-demo .rp-map-legend{gap:8px;font-size:10px;left:10px;}#reverse-demo .rp-speed{font-size:25px;}#reverse-demo .rp-driver-tag{left:14px;}#reverse-demo .rp-scene-title span{display:none;}}
+@media(prefers-reduced-motion:reduce){#reverse-demo .rp-wheel{transition:none;}}
+</style>
+<script>
+(() => {
+  const root = document.getElementById('reverse-demo');
+  const bays = [3.9,7.6,11.3,15,18.7];
+  const parked = bays.filter(x => x !== 11.3).map((x,i)=>({x,z:11.2,w:1.8,l:4.4,h:1.45,color:['#aab8c0','#859ca7','#b3beb4','#a0adb7'][i]}));
+  const initial = () => ({x:13,z:7.1,yaw:.75,steer:.38,speed:0,trail:[],blocked:false});
+  let state = initial(), aids = true, input = new Set(), previousTime = 0, animation = null;
+  const layouts = [...root.querySelectorAll('.rp-app')];
+  const wheelMarkup = '<div class="rp-wheel" aria-hidden="true"><b></b></div>';
+  function steeringMarkup(compact=false){return '<div class="'+(compact?'rp-compactsteer':'')+'">'+wheelMarkup+'<div class="rp-steertext"><span data-steer>方向盤右轉 218°</span><small data-tire>前輪右轉 22°</small></div></div>';}
+  layouts.forEach(app => {
+    const cockpit = app.dataset.layout === 'cockpit';
+    app.innerHTML = '<header class="rp-head"><div class="rp-brand"><div class="rp-brandmark"><i data-lucide="parking-square" aria-hidden="true"></i></div><div><strong>倒車練習室</strong><small>REVERSE LAB</small></div></div><div class="rp-headmeta"><span class="rp-badge">鍵盤操作</span><span class="rp-badge">畫面概念 DEMO</span></div></header>'+
+      '<div class="rp-content"><div class="rp-main"><div class="rp-toolbar"><div class="rp-scene-title">倒車入庫<span>練習場 · 目標車格 03</span></div><label class="rp-switch"><input type="checkbox" data-aids checked>軌跡輔助</label></div><div class="rp-stage">'+
+      (cockpit?'<canvas data-canvas="front" role="img" aria-label="駕駛座前方視野示意"></canvas><div class="rp-windshield"></div><div class="rp-mirror"><canvas data-canvas="rear" role="img" aria-label="中央後視鏡"></canvas><span class="rp-mirrorlabel">中央後視鏡</span></div><div class="rp-side-mirror left"><canvas data-canvas="left" role="img" aria-label="左後視鏡"></canvas></div><div class="rp-side-mirror right"><canvas data-canvas="right" role="img" aria-label="右後視鏡"></canvas></div><div class="rp-driver-tag">駕駛座視角</div><div class="rp-dash"><div class="rp-cockpitwheel" aria-hidden="true"><b></b></div><div class="rp-dashscreen"><span data-dashgear>R</span> <span data-dashspeed>0.0</span><small>km/h</small></div></div>':'<canvas data-canvas="map" role="img" aria-label="俯瞰停車場，黃色是操作車輛，綠色是目標車格"></canvas><div class="rp-map-meta"><i></i> 俯瞰視角 · 全場固定</div><div class="rp-map-legend"><span><b class="rp-dot"></b>你的車</span><span><b class="rp-dot goal"></b>目標車格</span><span><b class="rp-dot path"></b>預測倒車路徑</span></div>')+
+      '</div><div class="rp-caption"><span>'+(cockpit?'後視鏡與右側俯瞰同步顯示車輛位置':'車頭、車尾與前輪方向同步顯示')+'</span><span>示意車型 · 4.5 × 1.8 m</span></div></div><aside class="rp-side">'+
+      (cockpit?'<div class="rp-instrument"><div class="rp-label">俯瞰輔助 <span>即時同步</span></div><div class="rp-mini"><canvas data-canvas="mini" role="img" aria-label="與駕駛視角同步的俯瞰小窗"></canvas></div></div><div class="rp-instrument"><div class="rp-label">目前操作 <span data-motion>停車中</span></div><div class="rp-live"><span class="rp-gear" data-gear>R</span><span class="rp-speed" data-speed>0.0</span><span class="rp-unit">km/h</span></div>'+steeringMarkup(true)+'<button class="rp-button rp-center cursor-interaction" type="button" data-center>方向盤回正 <span>C</span></button></div>':'<div class="rp-instrument"><div class="rp-label">目前操作 <span data-motion>停車中</span></div><div class="rp-live"><span class="rp-gear" data-gear>R</span><span class="rp-speed" data-speed>0.0</span><span class="rp-unit">km/h</span></div>'+steeringMarkup()+'<button class="rp-button rp-center cursor-interaction" type="button" data-center>方向盤回正 <span>C</span></button></div><div class="rp-lesson"><div><div class="rp-label">本次練習</div><strong>將車尾倒入 03 號車格</strong><p>留意車頭向外擺動的位置。</p></div><div class="rp-status" data-status aria-live="polite"><i data-lucide="circle-check" aria-hidden="true"></i><span>可開始操作</span></div></div>')+
+      '</aside></div><footer class="rp-footer"><div class="rp-keys"><div class="rp-keygroup"><button class="rp-button cursor-interaction" data-move="left" type="button">← 左轉</button><button class="rp-button cursor-interaction" data-move="right" type="button">右轉 →</button></div><div class="rp-keygroup"><button class="rp-button cursor-interaction" data-move="forward" type="button">↑ 前進</button><button class="rp-button cursor-interaction" data-move="reverse" type="button">↓ 倒車</button></div></div><div class="rp-footerend"><span class="rp-bottomnote">按住操作 · 放開停止 · 空白鍵煞停</span><button class="rp-button rp-reset cursor-interaction" data-reset type="button"><i data-lucide="rotate-ccw" aria-hidden="true"></i>重新開始</button></div></footer>';
+  });
+  function palette(app){const s=getComputedStyle(app);const probe=document.createElement('span');app.append(probe);const out={};for(const key of ['road','roadline','sky','ground','ink','dim','panel','accent']){probe.style.color=s.getPropertyValue('--rp-'+key);out[key]=getComputedStyle(probe).color;}probe.remove();return out;}
+  let palettes=layouts.map(palette);
+  const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+  const point=(x,z,f,r)=>({x:x+Math.sin(state.yaw)*f+Math.cos(state.yaw)*r,z:z-Math.cos(state.yaw)*f+Math.sin(state.yaw)*r});
+  function predicted(){const p=[];let x=state.x,z=state.z,yaw=state.yaw;for(let i=0;i<72;i++){p.push({x,z,yaw});x-=Math.sin(yaw)*.11;z+=Math.cos(yaw)*.11;yaw-=.11/2.7*Math.tan(state.steer);}return p;}
+  function corners(s){return [[-.88,-.9],[.88,-.9],[.88,3.6],[-.88,3.6]].map(([r,f])=>({x:s.x+Math.cos(s.yaw)*r+Math.sin(s.yaw)*f,z:s.z+Math.sin(s.yaw)*r-Math.cos(s.yaw)*f}));}
+  function overlaps(a,b){for(const poly of [a,b])for(let i=0;i<poly.length;i++){const p=poly[i],q=poly[(i+1)%poly.length],ax=-(q.z-p.z),az=q.x-p.x;const aa=a.map(v=>v.x*ax+v.z*az),bb=b.map(v=>v.x*ax+v.z*az);if(Math.max(...aa)<Math.min(...bb)||Math.max(...bb)<Math.min(...aa))return false;}return true;}
+  function collision(s){const a=corners(s);if(a.some(p=>p.x<.65||p.x>23.35||p.z<1||p.z>16.5))return true;return parked.some(c=>overlaps(a,[{x:c.x-c.w/2,z:c.z-c.l/2},{x:c.x+c.w/2,z:c.z-c.l/2},{x:c.x+c.w/2,z:c.z+c.l/2},{x:c.x-c.w/2,z:c.z+c.l/2}]));}
+  function canvasSize(canvas){const b=canvas.getBoundingClientRect();if(b.width<1||b.height<1)return null;const d=Math.min(window.devicePixelRatio||1,2);if(canvas.width!==Math.round(b.width*d)||canvas.height!==Math.round(b.height*d)){canvas.width=Math.round(b.width*d);canvas.height=Math.round(b.height*d);}const ctx=canvas.getContext('2d');ctx.setTransform(d,0,0,d,0,0);return {ctx,w:b.width,h:b.height};}
+  function rounded(ctx,x,y,w,h,r,fill,stroke){ctx.beginPath();ctx.roundRect(x,y,w,h,r);if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.stroke();}}
+  function car(ctx,x,z,yaw,steer,color,scale,ours){ctx.save();ctx.translate(x,z);ctx.rotate(yaw);ctx.lineWidth=.045;for(const yy of [-2.7,0])for(const xx of [-.94,.94]){ctx.save();ctx.translate(xx,yy);if(yy<0)ctx.rotate(steer);rounded(ctx,-.13,-.34,.26,.68,.06,'#0f1a20');ctx.restore();}ctx.shadowColor='#06151c66';ctx.shadowBlur=scale*.22;ctx.shadowOffsetY=scale*.12;rounded(ctx,-.87,-3.6,1.74,4.5,.32,color);ctx.shadowBlur=0;ctx.shadowOffsetY=0;rounded(ctx,-.69,-2.65,1.38,.81,.15,'#263d48');rounded(ctx,-.67,-.17,1.34,.55,.12,'#314952');rounded(ctx,-.63,-1.79,1.26,1.5,.13,ours?'#e5b16b':'#a5b6bd');ctx.fillStyle='#f5edcf';ctx.fillRect(-.68,-3.53,.42,.12);ctx.fillRect(.26,-3.53,.42,.12);ctx.fillStyle='#e0776a';ctx.fillRect(-.68,.65,.36,.12);ctx.fillRect(.32,.65,.36,.12);if(ours){ctx.fillStyle='#57422b';ctx.beginPath();ctx.moveTo(0,-3.22);ctx.lineTo(-.16,-2.94);ctx.lineTo(.16,-2.94);ctx.fill();}ctx.restore();}
+  function drawMap(canvas,mini,pal){const sz=canvasSize(canvas);if(!sz)return;const {ctx,w,h}=sz;ctx.clearRect(0,0,w,h);ctx.fillStyle=pal.road;ctx.fillRect(0,0,w,h);const scale=Math.min(w/25,h/18.5),ox=(w-24*scale)/2,oy=(h-17*scale)/2;ctx.save();ctx.translate(ox,oy);ctx.scale(scale,scale);
+    ctx.strokeStyle='#a5b8bd0d';ctx.lineWidth=.035;for(let x=0;x<25;x++){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,17);ctx.stroke();}for(let z=0;z<18;z++){ctx.beginPath();ctx.moveTo(0,z);ctx.lineTo(24,z);ctx.stroke();}
+    rounded(ctx,.25,.55,23.5,.55,.12,'#738c84');rounded(ctx,.25,16.45,23.5,.3,.05,'#738c84');ctx.strokeStyle='#a9bbbe55';ctx.lineWidth=.06;ctx.setLineDash([.65,.65]);ctx.beginPath();ctx.moveTo(1,4.8);ctx.lineTo(23,4.8);ctx.stroke();ctx.setLineDash([]);
+    bays.forEach((x,i)=>{if(i===2){rounded(ctx,x-1.48,8.25,2.96,6,.08,'#75d9b81b');ctx.strokeStyle='#75d9b8';}else ctx.strokeStyle=pal.roadline;ctx.lineWidth=.065;ctx.beginPath();ctx.moveTo(x-1.5,8.2);ctx.lineTo(x-1.5,14.3);ctx.lineTo(x+1.5,14.3);ctx.lineTo(x+1.5,8.2);ctx.stroke();rounded(ctx,x-.61,13.7,1.22,.18,.04,'#a2b1b5');ctx.fillStyle=i===2?'#8ee4c7':'#b5c5c7';ctx.font='500 '+Math.max(11/scale,.48)+'px "Segoe UI",sans-serif';ctx.textAlign='center';ctx.fillText(String(i+1).padStart(2,'0'),x,15.4);});
+    parked.forEach(c=>car(ctx,c.x,c.z+1.35,0,0,c.color,scale,false));
+    if(aids){if(state.trail.length>1){ctx.strokeStyle='#edbb7288';ctx.lineWidth=.09;ctx.setLineDash([.13,.23]);ctx.beginPath();state.trail.forEach((p,i)=>i?ctx.lineTo(p.x,p.z):ctx.moveTo(p.x,p.z));ctx.stroke();ctx.setLineDash([]);}const pp=predicted();for(const offset of [-.91,.91]){ctx.strokeStyle='#75d9b8cc';ctx.lineWidth=.065;ctx.setLineDash([.25,.17]);ctx.beginPath();pp.forEach((p,i)=>{const x=p.x+Math.cos(p.yaw)*offset,z=p.z+Math.sin(p.yaw)*offset;i?ctx.lineTo(x,z):ctx.moveTo(x,z);});ctx.stroke();ctx.setLineDash([]);}ctx.fillStyle='#75d9b87d';pp.filter((_,i)=>i%15===0).forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.z,.075,0,Math.PI*2);ctx.fill();});}
+    car(ctx,state.x,state.z,state.yaw,state.steer,state.blocked?'#e29783':'#edbb72',scale,true);ctx.restore();if(!mini){const c=point(state.x,state.z,1.35,0);ctx.font='12px "Microsoft JhengHei",sans-serif';ctx.fillStyle='#efddbd';ctx.textAlign='left';ctx.fillText('你的車',clamp(ox+c.x*scale+1.5*scale,12,w-62),clamp(oy+c.z*scale,40,h-40));}}
+  function drawPerspective(canvas,view,pal){const size=canvasSize(canvas);if(!size)return;const {ctx,w,h}=size;const mirror=view!=='front';const cam=point(state.x,state.z,1.6,view==='left'?-.9:view==='right'?.9:-.35);const yaw=state.yaw+(mirror?Math.PI:0)+(view==='left'?.25:view==='right'?-.25:0);const cameraHeight=1.25,focal=w*(mirror?.64:.75),horizon=h*(mirror?.39:.43),sn=Math.sin(yaw),cs=Math.cos(yaw);
+    ctx.clearRect(0,0,w,h);ctx.fillStyle=pal.sky;ctx.fillRect(0,0,w,h);ctx.fillStyle=pal.ground;ctx.fillRect(0,horizon,w,h-horizon);const camera=(p)=>{const dx=p[0]-cam.x,dz=p[2]-cam.z;return {x:(dx*cs+dz*sn)*(mirror?-1:1),y:p[1]-cameraHeight,d:dx*sn-dz*cs};};const project=p=>[w/2+focal*p.x/p.d,horizon-focal*p.y/p.d];
+    function clip(v){const out=[];for(let i=0;i<v.length;i++){const a=v[i],b=v[(i+1)%v.length],aa=a.d>.2,bb=b.d>.2;if(aa)out.push(a);if(aa!==bb){const t=(.2-a.d)/(b.d-a.d);out.push({x:a.x+t*(b.x-a.x),y:a.y+t*(b.y-a.y),d:.2});}}return out;}
+    function poly(vertices,color){const vv=clip(vertices.map(camera));if(vv.length<3)return;ctx.beginPath();vv.map(project).forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fillStyle=color;ctx.fill();}
+    function rect(x1,z1,x2,z2,color,y=.005){poly([[x1,y,z1],[x2,y,z1],[x2,y,z2],[x1,y,z2]],color);}
+    function box(x,z,ww,ll,hh,color){const a=[x-ww/2,0,z-ll/2],b=[x+ww/2,0,z-ll/2],c=[x+ww/2,0,z+ll/2],d=[x-ww/2,0,z+ll/2],up=p=>[p[0],hh,p[2]];const faces=[[a,b,up(b),up(a)],[b,c,up(c),up(b)],[c,d,up(d),up(c)],[d,a,up(a),up(d)],[up(a),up(b),up(c),up(d)]];faces.sort((aa,bb)=>bb.reduce((s,p)=>s+camera(p).d,0)-aa.reduce((s,p)=>s+camera(p).d,0));faces.forEach((f,i)=>{poly(f,color);poly(f,'rgba(10,25,32,'+(i===4?.04:.13)+')');});}
+    rect(-70,-70,90,90,'#92a99f');rect(-2,-1,26,19,pal.ground);rect(0,.15,24,1,'#7c9690');rect(0,16.5,24,18,'#7c9690');const buildings=[{x:-8,z:-23,w:9,l:4,h:4,c:'#b5c3c3'},{x:8,z:-28,w:13,l:5,h:5,c:'#b4c4c6'},{x:27,z:-23,w:9,l:4,h:4.1,c:'#96afb3'},{x:12,z:22,w:26,l:2,h:1.1,c:'#8ba29a'}];buildings.sort((a,b)=>Math.hypot(b.x-cam.x,b.z-cam.z)-Math.hypot(a.x-cam.x,a.z-cam.z)).forEach(b=>{box(b.x,b.z,b.w,b.l,b.h,b.c);if(b.z<0)for(let xx=b.x-b.w/2+.8;xx<b.x+b.w/2-1;xx+=2.1)for(let yy=1;yy<b.h-1;yy+=1.5)poly([[xx,yy,b.z+b.l/2+.01],[xx+1,yy,b.z+b.l/2+.01],[xx+1,yy+.7,b.z+b.l/2+.01],[xx,yy+.7,b.z+b.l/2+.01]],'#78969f');});
+    for(const x of [2,6,10,14,18,22]){box(x,.85,.09,.09,.65,'#cad5d2');}box(12,.85,22,.06,.08,'#adc2bc');
+    for(let i=0;i<24;i+=1.3)rect(i,4.76,i+.65,4.84,'#c5d2d288');bays.forEach((x,i)=>{if(i===2)rect(x-1.48,8.2,x+1.48,14.3,'#66ceae40');const color=i===2?'#8de2c4':'#d5e0dc';rect(x-1.53,8.2,x-1.47,14.3,color);rect(x+1.47,8.2,x+1.53,14.3,color);rect(x-1.5,14.24,x+1.5,14.31,color);});
+    if(aids&&mirror){const pp=predicted();for(let i=1;i<pp.length;i++){if(i%4===0)continue;const a=pp[i-1],b=pp[i];for(const r of [-.9,.9]){const p=[a.x+Math.cos(a.yaw)*r,.02,a.z+Math.sin(a.yaw)*r],q=[b.x+Math.cos(b.yaw)*r,.02,b.z+Math.sin(b.yaw)*r];poly([[p[0]-.025,p[1],p[2]],[p[0]+.025,p[1],p[2]],[q[0]+.025,q[1],q[2]],[q[0]-.025,q[1],q[2]]],'#7ce4bc');}}}
+    for(const x of [3,8,19,23]){const z=2.1;rect(x-.23,z-.23,x+.23,z+.23,'#273941');const base=[[x-.16,.04,z-.16],[x+.16,.04,z-.16],[x+.16,.04,z+.16],[x-.16,.04,z+.16]],top=[x,.65,z];for(let i=0;i<4;i++)poly([base[i],base[(i+1)%4],top],i%2?'#dc9c60':'#ebbb7a');poly([[x-.09,.29,z-.09],[x+.09,.29,z-.09],[x+.055,.44,z-.055],[x-.055,.44,z-.055]],'#f4e8cb');}
+    [...parked].sort((a,b)=>Math.hypot(b.x-cam.x,b.z-cam.z)-Math.hypot(a.x-cam.x,a.z-cam.z)).forEach(c=>{
+      const v=(x,y,z)=>[c.x+x,y,c.z+z];
+      const faces=[{p:[v(-.9,.3,-2.2),v(.9,.3,-2.2),v(.86,.85,-2.1),v(-.86,.85,-2.1)],c:c.color},{p:[v(-.9,.3,2.2),v(.9,.3,2.2),v(.86,.85,2.1),v(-.86,.85,2.1)],c:c.color},{p:[v(-.9,.3,-2.2),v(-.9,.3,2.2),v(-.86,.85,2.1),v(-.86,.85,-2.1)],c:c.color},{p:[v(.9,.3,-2.2),v(.9,.3,2.2),v(.86,.85,2.1),v(.86,.85,-2.1)],c:c.color},{p:[v(-.86,.85,-2.1),v(.86,.85,-2.1),v(.86,.85,2.1),v(-.86,.85,2.1)],c:c.color}];
+      faces.sort((a,b)=>b.p.reduce((s,p)=>s+camera(p).d,0)-a.p.reduce((s,p)=>s+camera(p).d,0)).forEach(f=>poly(f.p,f.c));
+      const cabin=[{p:[v(-.77,.86,-1.15),v(.77,.86,-1.15),v(.65,1.44,-.55),v(-.65,1.44,-.55)],c:'#334e5a'},{p:[v(-.77,.86,1.1),v(.77,.86,1.1),v(.65,1.44,.63),v(-.65,1.44,.63)],c:'#334e5a'},{p:[v(-.77,.86,-1.15),v(-.77,.86,1.1),v(-.65,1.44,.63),v(-.65,1.44,-.55)],c:'#425f6b'},{p:[v(.77,.86,-1.15),v(.77,.86,1.1),v(.65,1.44,.63),v(.65,1.44,-.55)],c:'#425f6b'},{p:[v(-.65,1.44,-.55),v(.65,1.44,-.55),v(.65,1.44,.63),v(-.65,1.44,.63)],c:c.color}];
+      cabin.sort((a,b)=>b.p.reduce((s,p)=>s+camera(p).d,0)-a.p.reduce((s,p)=>s+camera(p).d,0)).forEach(f=>poly(f.p,f.c));
+      for(const side of [-1,1]){if((cam.x-c.x)*side<0)continue;for(const z of [-1.35,1.35]){const ring=Array.from({length:16},(_,i)=>v(side*.92,.35+Math.sin(i*Math.PI/8)*.3,z+Math.cos(i*Math.PI/8)*.3));poly(ring,'#203039');const hub=Array.from({length:12},(_,i)=>v(side*.925,.35+Math.sin(i*Math.PI/6)*.15,z+Math.cos(i*Math.PI/6)*.15));poly(hub,'#a7b7bc');}}
+      const back=cam.z>c.z,zz=back?2.205:-2.205;for(const x of [-.7,.34])poly([v(x,.5,zz),v(x+.36,.5,zz),v(x+.36,.69,zz),v(x,.69,zz)],back?'#dc8773':'#f4ead0');
+    });if(view==='left'||view==='right'){ctx.fillStyle='#dfbb7c';ctx.fillRect(view==='left'?w-9:0,h*.35,9,h*.65);}}
+  function visibleApp(){return layouts.find(app=>!app.closest('[data-variant]').hidden)||layouts[0];}
+  function draw(){layouts.forEach((app,i)=>{if(app.closest('[data-variant]').hidden)return;app.querySelectorAll('canvas').forEach(canvas=>{const view=canvas.dataset.canvas;if(view==='map'||view==='mini')drawMap(canvas,view==='mini',palettes[i]);else drawPerspective(canvas,view,palettes[i]);});});}
+  function sync(){const angle=Math.round(state.steer*180/Math.PI),wheel=Math.round(angle*10),speed=Math.abs(state.speed*3.6).toFixed(1),gear=state.speed>0?'D':'R';root.querySelectorAll('[data-speed],[data-dashspeed]').forEach(e=>e.textContent=speed);root.querySelectorAll('[data-gear],[data-dashgear]').forEach(e=>e.textContent=gear);root.querySelectorAll('[data-motion]').forEach(e=>e.textContent=state.blocked?'碰撞停止':state.speed<0?'倒車中':state.speed>0?'前進中':'停車中');root.querySelectorAll('[data-steer]').forEach(e=>e.textContent=angle===0?'方向盤已回正':'方向盤'+(angle<0?'左轉 ':'右轉 ')+Math.abs(wheel)+'°');root.querySelectorAll('[data-tire]').forEach(e=>e.textContent='前輪'+(angle===0?'直行':(angle<0?'左轉 ':'右轉 ')+Math.abs(angle)+'°'));root.querySelectorAll('.rp-wheel,.rp-cockpitwheel').forEach(e=>e.style.transform='rotate('+wheel+'deg)');root.querySelectorAll('[data-move]').forEach(e=>e.dataset.held=String(input.has(e.dataset.move)));root.querySelectorAll('[data-status]').forEach(e=>{e.classList.toggle('rp-warning',state.blocked);e.querySelector('span').textContent=state.blocked?'碰撞停止，可向反方向離開':Math.abs(state.speed)>.01?'練習中':'可開始操作';});root.querySelectorAll('[data-aids]').forEach(e=>e.checked=aids);draw();}
+  function tick(time){const dt=previousTime?Math.min((time-previousTime)/1000,.04):.016;previousTime=time;if(input.has('left'))state.steer=clamp(state.steer-dt*.6,-.58,.58);if(input.has('right'))state.steer=clamp(state.steer+dt*.6,-.58,.58);const v=(input.has('forward')?1:0)-(input.has('reverse')?1:0);state.speed=v*.68;if(v){const next={...state,x:state.x+Math.sin(state.yaw)*state.speed*dt,z:state.z-Math.cos(state.yaw)*state.speed*dt,yaw:state.yaw+state.speed*dt/2.7*Math.tan(state.steer)};state.blocked=collision(next);if(!state.blocked){state.x=next.x;state.z=next.z;state.yaw=next.yaw;const last=state.trail.at(-1);if(!last||Math.hypot(last.x-state.x,last.z-state.z)>.12){state.trail.push({x:state.x,z:state.z});if(state.trail.length>400)state.trail.shift();}}else state.speed=0;}sync();if(input.size)animation=requestAnimationFrame(tick);else{previousTime=0;animation=null;}}
+  function start(){if(!animation)animation=requestAnimationFrame(tick);}
+  function stop(){input.clear();state.speed=0;if(animation)cancelAnimationFrame(animation);animation=null;previousTime=0;sync();}
+  function remember(){if(window.openai?.setWidgetState)window.openai.setWidgetState({modelContent:{demo:'倒車模擬器畫面比較',view:visibleApp().dataset.layout==='cockpit'?'駕駛座＋俯瞰':'俯瞰練習',trajectoryGuide:aids},privateContent:{aids}}).catch(()=>{});}
+  root.querySelectorAll('[data-move]').forEach(button=>{button.addEventListener('pointerdown',e=>{e.preventDefault();button.focus();button.setPointerCapture(e.pointerId);input.add(button.dataset.move);start();});for(const event of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(event,()=>{input.delete(button.dataset.move);if(!input.size)stop();});});
+  root.querySelectorAll('[data-center]').forEach(button=>button.addEventListener('click',()=>{state.steer=0;sync();remember();}));root.querySelectorAll('[data-reset]').forEach(button=>button.addEventListener('click',()=>{stop();state=initial();sync();}));root.querySelectorAll('[data-aids]').forEach(box=>box.addEventListener('change',()=>{aids=box.checked;sync();remember();}));
+  const mapping={ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right',ArrowUp:'forward',w:'forward',W:'forward',ArrowDown:'reverse',s:'reverse',S:'reverse'};
+  document.addEventListener('keydown',e=>{if(!root.contains(document.activeElement)||document.activeElement.tagName==='INPUT')return;if(mapping[e.key]){e.preventDefault();input.add(mapping[e.key]);start();}else if(e.code==='Space'){e.preventDefault();stop();}else if(e.key.toLowerCase()==='c'){state.steer=0;sync();}});document.addEventListener('keyup',e=>{if(mapping[e.key]){input.delete(mapping[e.key]);if(!input.size)stop();}});window.addEventListener('blur',stop);document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();});
+  const saved=window.openai?.widgetState;if(typeof saved?.privateContent?.aids==='boolean')aids=saved.privateContent.aids;
+  window.addEventListener('openai:set_globals',e=>{const s=e.detail?.globals?.widgetState;if(typeof s?.privateContent?.aids==='boolean'){aids=s.privateContent.aids;sync();}});
+  new ResizeObserver(draw).observe(root);new MutationObserver(()=>{stop();requestAnimationFrame(draw);}).observe(root,{attributes:true,subtree:true,attributeFilter:['hidden']});
+  const themeObserver=new MutationObserver(()=>{palettes=layouts.map(palette);draw();});themeObserver.observe(document.documentElement,{attributes:true,attributeFilter:['class','data-theme','style']});window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{palettes=layouts.map(palette);draw();});
+  if(globalThis.Tweak){layouts.forEach(app=>{const design={showGuide:true};new Tweak({container:app,onChange:()=>{aids=design.showGuide;sync();}}).addToggle(design,'showGuide',{label:'顯示預測軌跡'});});}
+  sync();
+})();
+</script>

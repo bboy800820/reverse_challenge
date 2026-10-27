@@ -1,0 +1,38 @@
+from pathlib import Path
+from playwright.sync_api import sync_playwright
+
+folder = Path(__file__).resolve().parent
+with sync_playwright() as p:
+    browser = p.chromium.launch(channel="msedge", headless=True)
+    page = browser.new_page(viewport={"width": 1080, "height": 850}, device_scale_factor=1)
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    page.goto((folder / "preview.html").as_uri())
+    frame = page.frame_locator("iframe")
+    frame.locator("#reverse-demo .rp-stage").first.wait_for()
+    page.screenshot(path=str(folder / "overhead-preview.png"), full_page=True)
+    print("BUTTONS", frame.get_by_role("button").all_text_contents())
+    print("CANVASES", frame.locator("canvas").evaluate_all("els => els.map(e => ({type:e.dataset.canvas,width:e.width,height:e.height}))"))
+    print("ERRORS", errors)
+    frame.locator('.rp-app[data-layout="overhead"] [data-reset]').click()
+    before = frame.locator('[data-canvas="map"]').evaluate("e => e.toDataURL()")
+    page.keyboard.down("ArrowDown")
+    page.wait_for_timeout(600)
+    print("MOVING_SPEED", frame.locator('[data-layout="overhead"] [data-speed]').inner_text())
+    page.keyboard.up("ArrowDown")
+    after = frame.locator('[data-canvas="map"]').evaluate("e => e.toDataURL()")
+    print("MAP_UPDATED", before != after)
+    print("STOPPED_SPEED", frame.locator('[data-layout="overhead"] [data-speed]').inner_text())
+    frame.locator('[data-layout="overhead"] [data-reset]').click()
+    frame.get_by_role("button", name="下一個方案").click()
+    page.screenshot(path=str(folder / "cockpit-preview.png"), full_page=True)
+    print("COCKPIT_CANVASES", frame.locator('[data-layout="cockpit"] canvas').evaluate_all("els => els.map(e => ({type:e.dataset.canvas,width:e.width,height:e.height}))"))
+    frame.locator('[data-layout="cockpit"] [data-center]').click()
+    print("CENTERED", frame.locator('[data-layout="cockpit"] [data-steer]').inner_text())
+    frame.locator('[data-layout="cockpit"] [data-aids]').uncheck()
+    print("GUIDES_OFF", not frame.locator('[data-layout="overhead"] [data-aids]').is_checked())
+    page.set_viewport_size({"width": 390, "height": 1100})
+    page.screenshot(path=str(folder / "mobile-preview.png"), full_page=True)
+    print("MOBILE_SIZE", frame.locator('body').evaluate("e => ({scroll:e.scrollWidth,client:e.clientWidth})"))
+    print("FINAL_ERRORS", errors)
+    browser.close()
