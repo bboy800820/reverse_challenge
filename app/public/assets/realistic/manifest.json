@@ -62,6 +62,30 @@
     "sha256": "e0403652800a5128a59f742d95ac369dab46f2841af84a2937b23ce0cde5e9f2"
   },
   {
+    "file": "residential-panorama.jpg",
+    "source": "https://dl.polyhaven.org/file/ph-assets/HDRIs/extra/Tonemapped%20JPG/urban_street_03.jpg",
+    "bytes": 4730177,
+    "sha256": "117132f2f6ba7bde847b1fd8f0d278b911d96a639d8ece6256ca3e4d9ebc0de7"
+  },
+  {
+    "file": "residential-light.hdr",
+    "source": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/urban_street_03_1k.hdr",
+    "bytes": 1633950,
+    "sha256": "145c1e911e763c43a28ba5800888606b79acd1830f43fe9793f24da3478b5d8b"
+  },
+  {
+    "file": "city-panorama.jpg",
+    "source": "https://dl.polyhaven.org/file/ph-assets/HDRIs/extra/Tonemapped%20JPG/urban_street_02.jpg",
+    "bytes": 5666745,
+    "sha256": "43a7ae295572e3ff1931e2df3c4f6629fc4838f890ebc59ac306bb7b3fc86a02"
+  },
+  {
+    "file": "city-light.hdr",
+    "source": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/urban_street_02_1k.hdr",
+    "bytes": 1741883,
+    "sha256": "beb1258603f250f6204da5ea4ddb04d0b948a5ac086699bc132d37c4a6defce5"
+  },
+  {
     "file": "draco/LICENSE",
     "source": "https://raw.githubusercontent.com/google/draco/1.5.7/LICENSE",
     "bytes": 13898,

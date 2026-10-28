@@ -1,10 +1,12 @@
 import * as T from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-import { BAY_CENTERS, WORLD, localPoint, trajectory, type State } from './simulation';
+import { localPoint, trajectory, type State } from './simulation';
 import { VisualAssets } from './visual-assets';
 import { detailedVehicle } from './detailed-vehicle';
 import { createCockpit } from './cockpit';
-import { photographicEnvironment, ENVIRONMENT_ROTATION } from './photographic-environment';
+import { photographicEnvironment } from './photographic-environment';
+import { parkingLayout } from './parking-layout';
+import { SCENARIOS, type Scenario } from './scenarios';
 
 const mat = (color: number, roughness = .7, metalness = 0) => new T.MeshStandardMaterial({ color, roughness, metalness });
 const unitBox = new T.BoxGeometry(1, 1, 1);
@@ -63,7 +65,7 @@ function asphalt() {
   return texture;
 }
 
-export function createScene(root: HTMLElement, contextLost: () => void) {
+export function createScene(root: HTMLElement, contextLost: () => void, scenario: Scenario = SCENARIOS[0]) {
   const renderer = new T.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
   renderer.domElement.className = 'world-canvas'; renderer.domElement.setAttribute('aria-hidden', 'true');
   document.body.prepend(renderer.domElement);
@@ -71,36 +73,20 @@ export function createScene(root: HTMLElement, contextLost: () => void) {
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFShadowMap;
   renderer.shadowMap.autoUpdate = false;
   renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = .95;
-  renderer.domElement.addEventListener('webglcontextlost', event => { event.preventDefault(); contextLost(); });
+  const onContextLost = (event: Event) => { event.preventDefault(); contextLost(); };
+  renderer.domElement.addEventListener('webglcontextlost', onContextLost);
   const scene = new T.Scene(); scene.background = new T.Color(0xb7cddd); scene.fog = new T.Fog(0xb7cddd, 35, 95);
   const ambient = new T.HemisphereLight(0xe0f0ff, 0x64725a, .85); ambient.layers.enableAll(); scene.add(ambient);
-  const sun = new T.DirectionalLight(0xfff0d9, 2.7); sun.position.set(-9, 23, -12); sun.target.position.set(12, 0, 9); scene.add(sun, sun.target); sun.layers.enableAll();
+  const sun = new T.DirectionalLight(0xfff0d9, scenario.sunlight); sun.position.set(-9, 23, -12); sun.target.position.set(12, 0, 9); scene.add(sun, sun.target); sun.layers.enableAll();
   sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -24, right: 24, top: 24, bottom: -24, near: 1, far: 80 }); sun.shadow.bias = -.0002; sun.shadow.normalBias = .025;
-  const concrete = mat(0x8c9c9e), white = mat(0xdde4df), cyan = new T.MeshBasicMaterial({ color: 0x79e0e8 });
   const fallbackGround = box(scene, [180, .1, 160], [12, -.3, 9], mat(0x66675d));
-  const road = box(scene, [24, .15, 17], [12, -.08, 8.5], new T.MeshStandardMaterial({ map: asphalt(), roughness: .96 })); road.castShadow = false;
-  // Physical boundaries match WORLD.bounds. Decorative vegetation stays beyond them.
-  box(scene, [.4, .35, 16], [.45, .12, 8.5], concrete);
-  box(scene, [.4, .35, 16], [23.55, .12, 8.5], concrete);
-  box(scene, [23.5, .35, .4], [12, .12, .8], concrete);
-  box(scene, [23.5, .35, .4], [12, .12, 16.7], concrete);
-  const goal = new T.Mesh(new T.PlaneGeometry(3, 6.1), new T.MeshBasicMaterial({ color: 0x54b9c6, opacity: .2, transparent: true, depthWrite: false }));
-  goal.rotation.x = -Math.PI / 2; goal.position.set(11.3, .012, 11.25); scene.add(goal);
-  const parkedCars: { fallback: T.Group; color: number }[] = [];
-  BAY_CENTERS.forEach((x, i) => {
-    const line = i === 2 ? cyan : white;
-    for (const side of [-1, 1]) box(scene, [.085, .012, 6.1], [x + side * 1.5, .015, 11.25], line);
-    box(scene, [3.08, .012, .085], [x, .015, 14.3], line);
-    const label = groundLabel(String(i + 1).padStart(2, '0'), i === 2 ? '#8ce9ee' : '#e0e5df'); label.position.set(x, .03, 15); scene.add(label);
-    if (i !== 2) {
-      const parked = car([0x446979, 0xd8dfe1, 0xe8e0cd, 0x7792a3, 0x344958][i]);
-      parked.group.position.set(x, 0, 12.6); scene.add(parked.group);
-      parkedCars.push({ fallback: parked.group, color: [0x446979, 0xd8dfe1, 0xe8e0cd, 0x7792a3, 0x344958][i] });
-    }
+  const { road, concrete, parked } = parkingLayout(scene, scenario);
+  road.material.map = asphalt();
+  const parkedCars = parked.map(pose => {
+    const fallback = car(pose.color).group;
+    fallback.position.set(pose.x, 0, pose.z); fallback.rotation.y = -pose.yaw;
+    scene.add(fallback); return { fallback, color: pose.color };
   });
-  // Road markings give a stable visual scale in the forward view.
-  for (let x = 3; x < 22; x += 3.1) box(scene, [1.3, .012, .07], [x, .014, 3.6], white);
-  const direction = groundLabel('→', '#c5d6d4'); direction.position.set(13, .025, 4.7); direction.scale.set(1.8, 1.8, 1.8); scene.add(direction);
   const ego = car(0xdcae65); ego.group.traverse(o => o.layers.set(1)); scene.add(ego.group);
   const cockpit = createCockpit(); scene.add(cockpit.group);
   root.classList.add('realistic-cockpit');
@@ -109,10 +95,10 @@ export function createScene(root: HTMLElement, contextLost: () => void) {
   root.dataset.assets = 'loading';
   root.dataset.scenery = 'loading';
   const ready = Promise.allSettled([
-    assets.sky().then(texture => { if (!disposed) { scene.environment = texture; scene.background = texture; scene.environmentIntensity = .65; scene.backgroundIntensity = .85; scene.backgroundRotation.y = ENVIRONMENT_ROTATION; scene.environmentRotation.y = ENVIRONMENT_ROTATION; } }),
-    assets.panorama().then(texture => {
+    assets.sky(scenario.lighting).then(texture => { if (!disposed) { scene.environment = texture; scene.background = texture; scene.environmentIntensity = .65; scene.backgroundIntensity = .85; scene.backgroundRotation.y = scenario.rotation; scene.environmentRotation.y = scenario.rotation; } }),
+    assets.panorama(scenario.panorama).then(texture => {
       if (disposed) return;
-      scene.add(photographicEnvironment(texture));
+      scene.add(photographicEnvironment(texture, scenario.rotation));
       fallbackGround.visible = false;
       root.dataset.scenery = 'photo';
     }),
@@ -125,7 +111,7 @@ export function createScene(root: HTMLElement, contextLost: () => void) {
       if (disposed) return;
       for (const { fallback, color } of parkedCars) {
         const detailed = detailedVehicle(source, color);
-        detailed.group.position.copy(fallback.position); fallback.visible = false; scene.add(detailed.group);
+        detailed.group.position.copy(fallback.position); detailed.group.rotation.copy(fallback.rotation); fallback.visible = false; scene.add(detailed.group);
       }
       detailedEgo = detailedVehicle(source, 0xc99545);
       detailedEgo.group.traverse(o => o.layers.set(1)); scene.add(detailedEgo.group);
@@ -154,6 +140,7 @@ export function createScene(root: HTMLElement, contextLost: () => void) {
   for (let i = 0; i < uv.count; i++) uv.setX(i, 1 - uv.getX(i));
   const quadMaterial = new T.MeshBasicMaterial({ depthTest: false, depthWrite: false, toneMapped: false }); mirrorScene.add(new T.Mesh(quadGeometry, quadMaterial));
   const targets = [rear, left, right].map(() => new T.WebGLRenderTarget(256, 128, { depthBuffer: true }));
+  cockpit.setRearView(targets[0].texture);
   const elements = Object.fromEntries(['driver', 'overhead', 'rear', 'left', 'right'].map(name => [name, root.querySelector<HTMLElement>(`[data-view="${name}"]`)!]));
   let width = 0, height = 0, previousX: number | undefined, previousZ = 0, distance = 0;
   function cameraPose(camera: T.PerspectiveCamera, s: State, lateral: number, forward: number, y: number, relativeYaw: number, slope: number) {
@@ -170,7 +157,7 @@ export function createScene(root: HTMLElement, contextLost: () => void) {
     ego.group.position.set(s.x, 0, s.z); ego.group.rotation.y = -s.yaw;
     ego.frontWheels.forEach(wheel => wheel.rotation.y = -s.steer);
     ego.rearLight.emissiveIntensity = s.brakeHold || s.speed === 0 ? 1.3 : .2;
-    cockpit.update(s);
+    cockpit.update(s, braking);
     if (previousX !== undefined) { const delta = Math.hypot(s.x - previousX, s.z - previousZ); if (delta < .5) distance += delta * Math.sign(s.speed); }
     previousX = s.x; previousZ = s.z;
     if (detailedEgo) {
@@ -179,13 +166,13 @@ export function createScene(root: HTMLElement, contextLost: () => void) {
       detailedEgo.rearLight.emissiveIntensity = s.brakeHold || braking ? 2 : .2;
       detailedEgo.roll(distance);
     }
-    const path = aids ? trajectory(s) : { left: [], right: [] };
+    const path = aids ? trajectory(s, scenario.world) : { left: [], right: [] };
     [path.left, path.right].forEach((points, index) => {
       const line = rails[index], attribute = line.geometry.getAttribute('position') as T.BufferAttribute;
       points.forEach((p, i) => attribute.setXYZ(i, p.x, .045, p.z));
       attribute.needsUpdate = true; line.geometry.setDrawRange(0, points.length); line.computeLineDistances(); line.visible = points.length > 1;
     });
-    cameraPose(driver, s, -.38, 1.2, 1.18, 0, -.22);
+    cameraPose(driver, s, -.38, 1.05, 1.22, .12, -.27);
     cameraPose(rear, s, 0, 1.6, 1.4, Math.PI, -.12);
     cameraPose(left, s, -1.01, 2.2, 1.14, Math.PI + .18, -.2);
     cameraPose(right, s, 1.01, 2.2, 1.14, Math.PI - .18, -.2);
@@ -199,7 +186,10 @@ export function createScene(root: HTMLElement, contextLost: () => void) {
       camera.updateProjectionMatrix(); viewport(rect); renderer.render(scene, camera);
     }
     (['rear', 'left', 'right'] as const).forEach((name, i) => {
-      const rect = elements[name].getBoundingClientRect(); if (!visible(rect)) return;
+      const rect = elements[name].getBoundingClientRect(), mirrorVisible = visible(rect);
+      // The dashboard uses this texture too, even when scrolling hides the DOM mirror.
+      const cabinNeedsRear = name === 'rear' && s.gear === 'R' && visible(elements.driver.getBoundingClientRect());
+      if ((!mirrorVisible && !cabinNeedsRear) || rect.width <= 0 || rect.height <= 0) return;
       const camera = [rear, left, right][i], target = targets[i];
       const w = Math.max(1, Math.round(rect.width * renderer.getPixelRatio())), h = Math.max(1, Math.round(rect.height * renderer.getPixelRatio()));
       if (target.width !== w || target.height !== h) target.setSize(w, h);
@@ -207,7 +197,8 @@ export function createScene(root: HTMLElement, contextLost: () => void) {
       // setRenderTarget already installs a viewport in physical target pixels.
       // setViewport would apply the screen pixel ratio again and crop mirrors.
       renderer.setRenderTarget(target); renderer.setScissorTest(false); renderer.render(scene, camera);
-      renderer.setRenderTarget(null); renderer.setScissorTest(true); viewport(rect); quadMaterial.map = target.texture; renderer.render(mirrorScene, mirrorCamera);
+      renderer.setRenderTarget(null); renderer.setScissorTest(true);
+      if (mirrorVisible) { viewport(rect); quadMaterial.map = target.texture; renderer.render(mirrorScene, mirrorCamera); }
     });
   }
   function dispose() {
@@ -222,7 +213,9 @@ export function createScene(root: HTMLElement, contextLost: () => void) {
       });
     });
     geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose()); textures.forEach(t => t.dispose()); targets.forEach(t => t.dispose());
-    assets.dispose(); sun.shadow.dispose(); renderer.dispose(); renderer.domElement.remove();
+    assets.dispose(); sun.shadow.dispose();
+    renderer.domElement.removeEventListener('webglcontextlost', onContextLost);
+    renderer.dispose(); renderer.forceContextLoss(); renderer.domElement.remove();
   }
   return { renderer, render, dispose, ready };
 }

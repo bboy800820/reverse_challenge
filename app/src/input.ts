@@ -10,7 +10,7 @@ export function bindInput(root: HTMLElement, commands: Commands) {
   const gears: Record<string, Gear> = { Digit1: 'P', Digit2: 'R', Digit3: 'N', Digit4: 'D' };
   const source = (e: KeyboardEvent) => 'key-' + (e.code && e.code !== 'Unidentified' ? e.code : controlCode(e));
   window.addEventListener('keydown', e => {
-    if (e.altKey || e.ctrlKey || e.metaKey || (e.target instanceof HTMLElement && e.target.matches('input:not([type=checkbox]),textarea,[contenteditable=true]'))) return;
+    if (e.altKey || e.ctrlKey || e.metaKey || (e.target instanceof HTMLElement && e.target.matches('input:not([type=checkbox]),textarea,select,option,[contenteditable=true]'))) return;
     const code = controlCode(e);
     if (!code) return;
     e.preventDefault();

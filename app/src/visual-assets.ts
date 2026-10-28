@@ -27,14 +27,14 @@ export class VisualAssets {
     return texture;
   }
 
-  async sky() {
-    const texture = this.keep(await new HDRLoader().loadAsync(base + 'parking-light.hdr'));
+  async sky(path = 'parking-light.hdr') {
+    const texture = this.keep(await new HDRLoader().loadAsync(base + path));
     texture.mapping = T.EquirectangularReflectionMapping;
     return texture;
   }
 
-  async panorama() {
-    const texture = this.keep(await new T.TextureLoader().loadAsync(base + 'parking-panorama.jpg'));
+  async panorama(path = 'parking-panorama.jpg') {
+    const texture = this.keep(await new T.TextureLoader().loadAsync(base + path));
     texture.colorSpace = T.SRGBColorSpace;
     texture.wrapS = T.RepeatWrapping;
     texture.anisotropy = 4;

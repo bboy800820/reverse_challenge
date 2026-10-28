@@ -31,6 +31,10 @@ parking = json.loads(fetch('https://api.polyhaven.com/files/mall_parking_lot'))
 for filename, info in [('parking-panorama.jpg', parking['tonemapped']), ('parking-light.hdr', parking['hdri']['1k']['hdr'])]:
     jobs.append((filename, info['url'], info['md5']))
 jobs.append(('ferrari.glb', 'https://raw.githubusercontent.com/mrdoob/three.js/r186/examples/models/gltf/ferrari.glb', None))
+for prefix, name in [('residential', 'urban_street_03'), ('city', 'urban_street_02')]:
+    street = json.loads(fetch(f'https://api.polyhaven.com/files/{name}'))
+    for filename, info in [(f'{prefix}-panorama.jpg', street['tonemapped']), (f'{prefix}-light.hdr', street['hdri']['1k']['hdr'])]:
+        jobs.append((filename, info['url'], info['md5']))
 jobs.append(('draco/LICENSE', 'https://raw.githubusercontent.com/google/draco/1.5.7/LICENSE', None))
 
 def download(job):

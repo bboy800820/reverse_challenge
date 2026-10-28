@@ -1,7 +1,7 @@
 export type Gear = 'P' | 'R' | 'N' | 'D';
 export type Point = { x: number; z: number };
 export type Rect = { minX: number; maxX: number; minZ: number; maxZ: number };
-export type World = { bounds: Rect; obstacles: Rect[]; target: Rect };
+export type World = { bounds: Rect; obstacles: Rect[]; target: Rect; targetYaw?: number };
 export type Input = { throttle: boolean; brake: boolean; steer: number; center: boolean };
 export type State = Point & { yaw: number; steer: number; speed: number; gear: Gear; brakeHold: boolean; collisions: number; contact: boolean; parkedTime: number; parked: boolean };
 export const VEHICLE = { width: 1.8, front: 3.6, rear: .9, wheelbase: 2.7, maxSteer: Math.PI * 32 / 180 };
@@ -89,8 +89,9 @@ export function step(s: State, input: Input, dt: number, world: World = WORLD): 
       s.x = candidate.x; s.z = candidate.z; s.yaw = candidate.yaw;
       if (s.contact && clearance(s, world) > .08) s.contact = false;
     }
-    const aligned = Math.abs(s.yaw) < Math.PI * 7 / 180;
-    const parkedNow = Math.abs(s.speed) < .01 && aligned && corners(s).every(p => inside(p, world.target));
+    const heading = s.yaw - (world.targetYaw ?? 0);
+    const aligned = Math.abs(Math.atan2(Math.sin(heading), Math.cos(heading))) < Math.PI * 7 / 180;
+    const parkedNow = Math.abs(s.speed) < .01 && aligned && !intersects(s, world) && corners(s).every(p => inside(p, world.target));
     s.parkedTime = parkedNow ? s.parkedTime + h : 0;
     s.parked = s.parkedTime >= 1;
   }

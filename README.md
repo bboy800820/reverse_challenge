@@ -2,7 +2,21 @@
 
 深藍儀表板、駕駛視角、三面後視鏡與俯瞰輔助。正式程式位於 `app/`；原本的概念圖與畫面原型保留供比較。
 
-![實景環境雙視角實際畫面](assets/previews/photographic-desktop.png)
+![住宅街道路邊停車與新座艙](assets/previews/residential-cabin-desktop.png)
+
+## 選擇場景
+
+畫面上方的「選擇練習場景」可切換三個實拍環境與練習配置：
+
+| 場景 | 練習 | 目標 |
+| --- | --- | --- |
+| 商場停車場 | 入門垂直倒車入庫 | 03 號車位 |
+| 住宅街道 | 標準路邊停車 | 6.8 × 2.6 m 車位 |
+| 市區窄位 | 進階路邊停車 | 5.8 × 2.6 m 車位 |
+
+路邊停車起點在前車旁，車位在右後方。利用 R 檔與轉向倒入，再以 D/R 修正；整車進入框內、車頭與路緣同向平行並停穩一秒才算完成。前後車與路緣都有碰撞判定。切換場景會清除本次操作和碰撞次數，回到 P 檔並保持煞車；「重新開始」保留目前場景。
+
+座艙新增皮革飾板、縫線、排檔桿、雙圓指針儀表與中央螢幕。左圓錶顯示低速車速，右圓錶是前輪轉角輔助錶；切入 R 檔會顯示即時倒車影像。空調等內裝按鈕是外觀示意；操作仍使用鍵盤或右側控制面板。
 
 ## 開啟
 
@@ -27,7 +41,7 @@ Pages 的發布來源須設為 **GitHub Actions**。`app/vite.config.ts` 的 `ba
 3. 用 **← / →** 逐步轉向，鬆開會保持角度；**C** 是輔助回正。
 4. **↑ 是油門**；**持續按住 ↓ 或空白鍵煞車**。踏板會顯示「踩下中」，車速歸零後顯示「已煞停」。放開煞車後 D/R 會恢復蠕行，要持續停止可點「保持煞車」。行進方向由 D/R 決定。
 5. 停穩並踩住煞車，再用 **1 / 2 / 3 / 4** 切換 **P / R / N / D**。也可點擊檔位按鈕。
-6. 利用後視鏡及俯瞰圖，將車完整停入 **03**，車頭對齊並停穩一秒會顯示完成。
+6. 利用後視鏡及俯瞰圖，將車完整停入目前場景的目標車位，車頭對齊並停穩一秒會顯示完成。
 
 Esc 暫停／繼續。切到其他視窗時自動暫停；恢復後會保持煞車。碰撞會煞停並記次，踩住煞車換檔後可反向駛離。「重新開始」重設車輛與碰撞次數。
 
@@ -41,14 +55,15 @@ Esc 暫停／繼續。切到其他視窗時自動暫停；恢復後會保持煞�
 
 目前使用公開授權的 Ferrari 458 Italia 模型作為外觀示意，尺寸和材質經調整；概念圖中的 SUV、座艙和本版車模並非相同車款。車輛使用低速單軌模型與矩形車身碰撞；車身 1.8 × 4.5 m、軸距 2.7 m、前輪最大角度 32°、方向盤顯示比例 14:1、蠕行 0.32 m/s；這些數值尚未以特定實車校準。
 
-場景素材約 13.3 MB（含保留的舊版素材），位於 `app/public/assets/realistic/`，隨 Pages 一起發布；執行時不呼叫第三方素材服務。車模已由 358,788 面減為 56,520 面，並重建平滑法線。載入期間可操作，部分素材失敗會提示並保留基礎場景。來源、修改說明及授權見 [素材署名頁](app/public/assets/credits.html) 與 [下載紀錄](app/public/assets/realistic/manifest.json)。在 Windows 重新下載可執行 `python scripts/fetch-visual-assets.py`，需要網路與已安裝的 npm 依賴；車模準備使用固定版本 glTF Transform 4.5.1，不加入網頁執行時依賴。
+場景素材約 27 MB（含三個實拍環境與保留的舊版素材），每次只載入目前場景所需素材，位於 `app/public/assets/realistic/`，隨 Pages 一起發布；執行時不呼叫第三方素材服務。車模已由 358,788 面減為 56,520 面，並重建平滑法線。載入期間可操作，部分素材失敗會提示並保留基礎場景。來源、修改說明及授權見 [素材署名頁](app/public/assets/credits.html) 與 [下載紀錄](app/public/assets/realistic/manifest.json)。在 Windows 重新下載可執行 `python scripts/fetch-visual-assets.py`，需要網路與已安裝的 npm 依賴；車模準備使用固定版本 glTF Transform 4.5.1，不加入網頁執行時依賴。
 
-本版用來確認操作與視野，尚未驗證真車手感、鏡面視野及訓練成效。後續可換成特定車款的模型、轉向／加減速數據，再加入其他停車情境與回放。
+本版用來確認操作與視野，尚未驗證真車手感、鏡面視野及訓練成效。後續可換成特定車款的模型、轉向／加減速數據，再加入其他停車情境與回放。住宅和市區遠景是倫敦實拍，並非台灣特定路段。
 
 ## 專案位置
 
 - `app/src/simulation.ts`：車輛、換檔、碰撞及停車判定。
 - `app/src/scene.ts`：3D 場景、相機、鏡面與軌跡。
+- `app/src/scenarios.ts`、`parking-layout.ts`：場景設定、起點、車位與一致的碰撞／視覺配置。
 - `app/src/cockpit.ts`、`detailed-vehicle.ts`、`vegetation.ts`：立體座艙、車輛外觀及植被。
 - `app/src/visual-assets.ts`：本機素材載入與資源生命週期。
 - `app/src/input.ts`：鍵盤與滑鼠／觸控的共同輸入處理。
@@ -60,7 +75,7 @@ Esc 暫停／繼續。切到其他視窗時自動暫停；恢復後會保持煞�
 
 ## 驗證
 
-在 `app/` 執行 `npm test` 和 `npm run build`。啟動預覽服務後，在專案根目錄依序執行 `python verify-app.py`、`python verify-brakes.py`、`python verify-render.py`、`python verify-visuals.py`（需要 Python、Playwright、Pillow 與 Edge）。檢查涵蓋車輛操作、一般及嵌入式鍵盤事件的煞車／釋放、高解析度螢幕的相機取景，以及模型、天空、路面材質各自失敗時的操作。`python scripts/preview-realistic.py` 會產生桌面與手機實際截圖。這些檢查不等於實車校準。
+在 `app/` 執行 `npm test` 和 `npm run build`。啟動預覽服務後，在專案根目錄依序執行 `python verify-app.py`、`python verify-brakes.py`、`python verify-render.py`、`python verify-visuals.py`（需要 Python、Playwright、Pillow 與 Edge）。檢查涵蓋車輛操作、一般及嵌入式鍵盤事件的煞車／釋放、高解析度螢幕的相機取景，以及模型、天空、路面材質各自失敗時的操作。`python scripts/preview-realistic.py` 會產生桌面與手機實際截圖。新增 `python scripts/verify-scenarios.py` 檢查三種場景、連續切換、鍵盤焦點、手機排版及街景載入失敗。`python scripts/verify-cabin-camera.py` 檢查捲動後車內倒車畫面持續更新。使用 `PARKING_URL` 環境變數指定測試網址。這些檢查不等於實車校準。
 
 開發技能來源：[frontend-design](https://github.com/anthropics/skills/tree/main/skills/frontend-design)、[Three.js skills](https://github.com/CloudAI-X/threejs-skills)。技能非執行模擬器所必需。
 
