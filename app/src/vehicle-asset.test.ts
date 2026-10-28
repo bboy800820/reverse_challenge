@@ -14,10 +14,12 @@ it('ships a bounded-complexity model with the nodes needed by steering and mater
 });
 
 it('matches the shipped assets to their provenance manifest', () => {
+  for (const directory of [new URL('../public/assets/realistic/', import.meta.url), new URL('../public/assets/luxury/', import.meta.url), new URL('../public/assets/cabin/', import.meta.url)]) {
   const manifest = JSON.parse(readFileSync(new URL('manifest.json', directory), 'utf8'));
   for (const entry of manifest) {
     const data = readFileSync(new URL(entry.file, directory));
     expect(data.length, entry.file).toBe(entry.bytes);
     expect(createHash('sha256').update(new Uint8Array(data)).digest('hex'), entry.file).toBe(entry.sha256);
+  }
   }
 });

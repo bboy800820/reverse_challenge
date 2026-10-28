@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
 import { rebuildVehicleNormals } from './vehicle-fit';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
 const base = `${import.meta.env.BASE_URL}assets/realistic/`;
 
@@ -49,6 +50,13 @@ export class VisualAssets {
       rebuildVehicleNormals(scene);
       return scene;
     } finally { this.decoder.dispose(); }
+  }
+
+  async luxury(path: string) {
+    const { scene } = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(`${import.meta.env.BASE_URL}assets/${path}`);
+    if (this.disposed) { disposeTree(scene); throw new Error('Scene closed'); }
+    this.models.add(scene);
+    return scene;
   }
 
   dispose() {

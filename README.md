@@ -2,7 +2,7 @@
 
 深藍儀表板、駕駛視角、三面後視鏡與俯瞰輔助。正式程式位於 `app/`；原本的概念圖與畫面原型保留供比較。
 
-![住宅街道路邊停車與新座艙](assets/previews/residential-cabin-desktop.png)
+![住宅街道路邊停車與新座艙](assets/previews/photo-cabin-residential-reverse.png)
 
 ## 選擇場景
 
@@ -16,7 +16,9 @@
 
 路邊停車起點在前車旁，車位在右後方。利用 R 檔與轉向倒入，再以 D/R 修正；整車進入框內、車頭與路緣同向平行並停穩一秒才算完成。前後車與路緣都有碰撞判定。切換場景會清除本次操作和碰撞次數，回到 P 檔並保持煞車；「重新開始」保留目前場景。
 
-座艙新增皮革飾板、縫線、排檔桿、雙圓指針儀表與中央螢幕。左圓錶顯示低速車速，右圓錶是前輪轉角輔助錶；切入 R 檔會顯示即時倒車影像。空調等內裝按鈕是外觀示意；操作仍使用鍵盤或右側控制面板。
+座艙依使用者提供的車內照片製作透明照片式前景，搭配獨立旋轉的皮革方向盤、即時檔位／車速儀表與 R 檔倒車影像。玻璃、後視鏡與中控螢幕的開口顯示正在運作的 3D 場景。照片素材載入失敗時，會回到原本的立體座艙；鍵盤及右側操作面板仍可使用。這是固定駕駛視角的混合呈現，不支援在車內自由轉頭。
+
+周圍停放 **Lamborghini Aventador、Rolls-Royce Cullinan、Ferrari 458 Italia**。車型的示意長寬與碰撞範圍一致，大型 SUV 會占用更多空間；兩種路邊停車都有完整無碰撞操作路徑的測試。未加入虛構車價或修理費。
 
 ## 開啟
 
@@ -49,13 +51,13 @@ Esc 暫停／繼續。切到其他視窗時自動暫停；恢復後會保持煞�
 
 ## 本版內容與限制
 
-使用 Three.js 同一場景繪製五個視角，鏡面影像有水平反射。車外的商場、樹木、路燈、天空與遠處停車場改用實景拍攝的 360° 全景照片，並使用配對 HDR 提供反射與環境光，取代先前的簡化樹木和方塊建築。近處練習車位、車輛與座艙仍為互動 3D。方向盤、儀表與前輪跟隨操作，煞車燈回應煞車。
+使用 Three.js 同一場景繪製五個視角，鏡面影像有水平反射。車外的商場、樹木、路燈、天空與遠處停車場改用實景拍攝的 360° 全景照片，並使用配對 HDR 提供反射與環境光，取代先前的簡化樹木和方塊建築。近處練習車位與車輛仍為互動 3D；座艙是照片式前景加動態元件。方向盤、儀表與前輪跟隨操作，煞車燈回應煞車。
 
 遠景使用地面投影的照片，並非整個商場的三維重建；無法開近照片中的建築或遠方車輛，也不以照片裡的物件計算碰撞。所有可操作區域仍在俯瞰圖的練習場邊界內。
 
-目前使用公開授權的 Ferrari 458 Italia 模型作為外觀示意，尺寸和材質經調整；概念圖中的 SUV、座艙和本版車模並非相同車款。車輛使用低速單軌模型與矩形車身碰撞；車身 1.8 × 4.5 m、軸距 2.7 m、前輪最大角度 32°、方向盤顯示比例 14:1、蠕行 0.32 m/s；這些數值尚未以特定實車校準。
+自車使用公開授權的 Ferrari 458 Italia 模型作為外觀示意，尺寸和材質經調整；概念圖中的 SUV、座艙和本版車模並非相同車款。車輛使用低速單軌模型與矩形車身碰撞；車身 1.8 × 4.5 m、軸距 2.7 m、前輪最大角度 32°、方向盤顯示比例 14:1、蠕行 0.32 m/s；這些數值尚未以特定實車校準。
 
-場景素材約 27 MB（含三個實拍環境與保留的舊版素材），每次只載入目前場景所需素材，位於 `app/public/assets/realistic/`，隨 Pages 一起發布；執行時不呼叫第三方素材服務。車模已由 358,788 面減為 56,520 面，並重建平滑法線。載入期間可操作，部分素材失敗會提示並保留基礎場景。來源、修改說明及授權見 [素材署名頁](app/public/assets/credits.html) 與 [下載紀錄](app/public/assets/realistic/manifest.json)。在 Windows 重新下載可執行 `python scripts/fetch-visual-assets.py`，需要網路與已安裝的 npm 依賴；車模準備使用固定版本 glTF Transform 4.5.1，不加入網頁執行時依賴。
+場景與車模素材位於 `app/public/assets/realistic/`、`luxury/`；照片式座艙位於 `app/public/assets/cabin/`，每次只載入目前場景所需的環境與車款，隨 Pages 一起發布；執行時不呼叫第三方素材服務。自車車模已由 358,788 面減為 56,520 面，並重建平滑法線。載入期間可操作，部分素材失敗會提示並保留基礎場景。來源、修改說明及授權見 [素材署名頁](app/public/assets/credits.html) 與 [下載紀錄](app/public/assets/realistic/manifest.json)。在 Windows 重新下載可執行 `python scripts/fetch-visual-assets.py`，需要網路與已安裝的 npm 依賴；車模準備使用固定版本 glTF Transform 4.5.1，不加入網頁執行時依賴。
 
 本版用來確認操作與視野，尚未驗證真車手感、鏡面視野及訓練成效。後續可換成特定車款的模型、轉向／加減速數據，再加入其他停車情境與回放。住宅和市區遠景是倫敦實拍，並非台灣特定路段。
 
@@ -64,7 +66,8 @@ Esc 暫停／繼續。切到其他視窗時自動暫停；恢復後會保持煞�
 - `app/src/simulation.ts`：車輛、換檔、碰撞及停車判定。
 - `app/src/scene.ts`：3D 場景、相機、鏡面與軌跡。
 - `app/src/scenarios.ts`、`parking-layout.ts`：場景設定、起點、車位與一致的碰撞／視覺配置。
-- `app/src/cockpit.ts`、`detailed-vehicle.ts`、`vegetation.ts`：立體座艙、車輛外觀及植被。
+- `app/src/photo-cabin.ts`、`cockpit.ts`：照片式座艙與立體備援座艙。
+- `app/src/fleet.ts`、`parked-vehicle.ts`、`detailed-vehicle.ts`：名車尺寸、鄰車呈現與自車外觀。
 - `app/src/visual-assets.ts`：本機素材載入與資源生命週期。
 - `app/src/input.ts`：鍵盤與滑鼠／觸控的共同輸入處理。
 - `app/src/main.ts`、`style.css`：儀表板與操作提示。
@@ -75,7 +78,7 @@ Esc 暫停／繼續。切到其他視窗時自動暫停；恢復後會保持煞�
 
 ## 驗證
 
-在 `app/` 執行 `npm test` 和 `npm run build`。啟動預覽服務後，在專案根目錄依序執行 `python verify-app.py`、`python verify-brakes.py`、`python verify-render.py`、`python verify-visuals.py`（需要 Python、Playwright、Pillow 與 Edge）。檢查涵蓋車輛操作、一般及嵌入式鍵盤事件的煞車／釋放、高解析度螢幕的相機取景，以及模型、天空、路面材質各自失敗時的操作。`python scripts/preview-realistic.py` 會產生桌面與手機實際截圖。新增 `python scripts/verify-scenarios.py` 檢查三種場景、連續切換、鍵盤焦點、手機排版及街景載入失敗。`python scripts/verify-cabin-camera.py` 檢查捲動後車內倒車畫面持續更新。使用 `PARKING_URL` 環境變數指定測試網址。這些檢查不等於實車校準。
+在 `app/` 執行 `npm test` 和 `npm run build`。啟動預覽服務後，在專案根目錄依序執行 `python verify-app.py`、`python verify-brakes.py`、`python verify-render.py`、`python verify-visuals.py`（需要 Python、Playwright、Pillow 與 Edge）。檢查涵蓋車輛操作、一般及嵌入式鍵盤事件的煞車／釋放、高解析度螢幕的相機取景，以及模型、天空、路面材質各自失敗時的操作。`python scripts/preview-realistic.py` 會產生桌面與手機實際截圖。新增 `python scripts/verify-scenarios.py` 檢查三種場景、連續切換、鍵盤焦點、手機排版及街景載入失敗。`python scripts/verify-cabin-camera.py` 檢查捲動後車內倒車畫面持續更新。`python scripts/verify-cabin-clipping.py` 檢查 821–900px 的螢幕裁切。`python scripts/verify-photo-cabin.py` 檢查照片透明度、儀表結構、方向盤動畫、鏡面遮擋與素材失敗備援。`python scripts/preview-photo-cabin.py` 產生新版截圖。使用 `PARKING_URL` 環境變數指定測試網址。這些檢查不等於實車校準。
 
 開發技能來源：[frontend-design](https://github.com/anthropics/skills/tree/main/skills/frontend-design)、[Three.js skills](https://github.com/CloudAI-X/threejs-skills)。技能非執行模擬器所必需。
 

@@ -14,11 +14,15 @@ with sync_playwright() as p:
     page.wait_for_timeout(300)
     # At this scroll offset the entire center mirror is offscreen, while the
     # right-hand dashboard display (inside the driver canvas) remains visible.
-    page.evaluate('scrollTo(0, 350)')
+    mirror = page.locator('[data-view="rear"]').bounding_box()
+    page.evaluate(f'scrollTo(0, {mirror["y"] + mirror["height"] + 15})')
     page.wait_for_timeout(300)
     assert page.locator('[data-view="rear"]').bounding_box()['y'] + page.locator('[data-view="rear"]').bounding_box()['height'] < 0
     def camera():
-        return Image.open(io.BytesIO(page.screenshot(clip={'x':301,'y':48,'width':60,'height':23}))).convert('RGB')
+        rect = page.locator('.photo-monitor').bounding_box()
+        # Inset excludes the informational overlay and bezel.
+        clip = {'x':rect['x']+rect['width']*.1,'y':rect['y']+rect['height']*.1,'width':rect['width']*.8,'height':rect['height']*.6}
+        return Image.open(io.BytesIO(page.screenshot(clip=clip))).convert('RGB')
     before = camera()
     # Use DOM click to avoid scrolling back down to the control panel.
     page.locator('[data-hold]').evaluate('(e)=>e.click()')

@@ -1,0 +1,58 @@
+[
+  {
+    "id": "lamborghini-aventador-lp700-4",
+    "brand": "Lamborghini",
+    "model": "Aventador Lp700-4",
+    "years": [
+      2013,
+      2013
+    ],
+    "category": "sports",
+    "file": "lamborghini-aventador-lp700-4.glb",
+    "bytes": 1713884,
+    "paint": {
+      "materials": [
+        "body"
+      ],
+      "textured": false,
+      "confidence": "m\u00e9dia"
+    },
+    "credit": {
+      "author": "_shobh19",
+      "authorUrl": "https://sketchfab.com/s0h1o9b",
+      "license": "CC Attribution",
+      "sourceName": "2013 Lamborghini Aventador lp700-4 Roadster",
+      "sourceUrl": "https://sketchfab.com/3d-models/none-dbd3e2ccdc2748af957c34310163d848"
+    },
+    "source": "https://raw.githubusercontent.com/pedrosoandre/carros/2d18dfd9db96bbf0d9cffa949deaf7f571388cbf/assets/lamborghini-aventador-lp700-4.glb",
+    "sha256": "34e4781ed143bfb2c3b349f8be66252f6a949de4f93262d75d94cc1c4986698b"
+  },
+  {
+    "id": "rolls-royce-cullinan",
+    "brand": "Rolls-Royce",
+    "model": "Cullinan",
+    "years": [
+      2000,
+      2024
+    ],
+    "category": "suv",
+    "file": "rolls-royce-cullinan.glb",
+    "bytes": 1697760,
+    "paint": {
+      "materials": [
+        "material"
+      ],
+      "textured": true,
+      "confidence": "alta"
+    },
+    "credit": {
+      "author": "NewViStudios",
+      "authorUrl": "https://sketchfab.com/newvistudios",
+      "license": "CC Attribution",
+      "sourceName": "Rolls Royce Cullinan",
+      "sourceUrl": "https://sketchfab.com/3d-models/61f16a1d5be2403abcdd8fa552f730f7"
+    },
+    "source": "https://raw.githubusercontent.com/pedrosoandre/carros/2d18dfd9db96bbf0d9cffa949deaf7f571388cbf/assets/rolls-royce-cullinan.glb",
+    "sha256": "40b564a097bd6d8387bf8326de006f84dbbe7463bebae5e93664c42ac1459896"
+  }
+]

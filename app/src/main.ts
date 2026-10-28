@@ -10,7 +10,7 @@ root.innerHTML = `
   <section class="scenario-bar" aria-label="場景選擇"><div><label for="scenario">選擇練習場景</label><select id="scenario" data-scenario>${SCENARIOS.map(s => `<option value="${s.id}">${s.name} · ${s.difficulty}</option>`).join('')}</select></div><p data-lesson-description>${SCENARIOS[0].description}</p><span>切換後重新開始</span></section>
   <div class="workspace">
     <section class="driver panel" aria-label="駕駛視角">
-      <div class="panel-heading"><h2>駕駛視角</h2><span>左駕 · 三面後視鏡</span></div>
+      <div class="panel-heading"><h2>駕駛視角</h2><span title="Lamborghini Aventador、Rolls-Royce Cullinan、Ferrari 458">左駕 · 名車停靠區</span></div>
       <div class="drive-window" data-view="driver" tabindex="0" aria-label="駕駛畫面，使用方向鍵操作">
         <div class="windshield-frame" aria-hidden="true"></div>
         <div class="mirror central" data-view="rear"><span>中央後視鏡</span></div>

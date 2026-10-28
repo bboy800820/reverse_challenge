@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { BAY_CENTERS } from './simulation';
 import type { Scenario } from './scenarios';
+import { neighborSpec } from './fleet';
 
 /** All physical parked cars and curb edges come from the collision world. */
 export function parkingLayout(scene: T.Scene, scenario: Scenario) {
@@ -45,9 +46,8 @@ export function parkingLayout(scene: T.Scene, scenario: Scenario) {
   }
   const yaw = scenario.kind === 'parallel' ? Math.PI / 2 : 0;
   const parked = scenario.world.obstacles.map((r, i) => ({
-    x: (r.minX + r.maxX) / 2 - 1.35 * Math.sin(yaw),
-    z: (r.minZ + r.maxZ) / 2 + 1.35 * Math.cos(yaw), yaw,
-    color: [0x446979, 0xd8dfe1, 0x7792a3, 0x344958][i % 4],
+    x: (r.minX + r.maxX) / 2,
+    z: (r.minZ + r.maxZ) / 2, yaw, spec: neighborSpec(i, scenario.kind),
   }));
   return { road, concrete, parked };
 }

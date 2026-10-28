@@ -4,6 +4,8 @@ import { localPoint, trajectory, type State } from './simulation';
 import { VisualAssets } from './visual-assets';
 import { detailedVehicle } from './detailed-vehicle';
 import { createCockpit } from './cockpit';
+import { createPhotoCabin } from './photo-cabin';
+import { parkedVehicle } from './parked-vehicle';
 import { photographicEnvironment } from './photographic-environment';
 import { parkingLayout } from './parking-layout';
 import { SCENARIOS, type Scenario } from './scenarios';
@@ -83,18 +85,30 @@ export function createScene(root: HTMLElement, contextLost: () => void, scenario
   const { road, concrete, parked } = parkingLayout(scene, scenario);
   road.material.map = asphalt();
   const parkedCars = parked.map(pose => {
-    const fallback = car(pose.color).group;
+    const fallback = parkedVehicle(car(pose.spec.color ?? 0x545b60).group, { ...pose.spec, sourceYaw: 0 });
     fallback.position.set(pose.x, 0, pose.z); fallback.rotation.y = -pose.yaw;
-    scene.add(fallback); return { fallback, color: pose.color };
+    scene.add(fallback); return { fallback, spec: pose.spec };
   });
   const ego = car(0xdcae65); ego.group.traverse(o => o.layers.set(1)); scene.add(ego.group);
   const cockpit = createCockpit(); scene.add(cockpit.group);
+  const photoCabin = createPhotoCabin(root);
   root.classList.add('realistic-cockpit');
   const assets = new VisualAssets();
   let disposed = false, detailedEgo: ReturnType<typeof detailedVehicle> | undefined;
   root.dataset.assets = 'loading';
   root.dataset.scenery = 'loading';
+  const egoSource = assets.vehicle();
+  const neighborSources = new Map<string, Promise<T.Object3D>>();
   const ready = Promise.allSettled([
+    photoCabin.ready,
+    ...parkedCars.map(async ({ fallback, spec }) => {
+      if (!neighborSources.has(spec.id)) neighborSources.set(spec.id, spec.id === 'ferrari' ? egoSource : assets.luxury(spec.file));
+      const source = await neighborSources.get(spec.id)!;
+      if (disposed) return;
+      const model = parkedVehicle(source, spec);
+      model.position.copy(fallback.position); model.rotation.copy(fallback.rotation);
+      fallback.visible = false; scene.add(model);
+    }),
     assets.sky(scenario.lighting).then(texture => { if (!disposed) { scene.environment = texture; scene.background = texture; scene.environmentIntensity = .65; scene.backgroundIntensity = .85; scene.backgroundRotation.y = scenario.rotation; scene.environmentRotation.y = scenario.rotation; } }),
     assets.panorama(scenario.panorama).then(texture => {
       if (disposed) return;
@@ -107,12 +121,8 @@ export function createScene(root: HTMLElement, contextLost: () => void, scenario
     assets.texture('asphalt_02/Rough.jpg', 8).then(t => { if (!disposed) { road.material.roughnessMap = t; road.material.needsUpdate = true; } }),
     assets.texture('concrete_layers_02/Diffuse.jpg', 1, true).then(t => { if (!disposed) { concrete.map = t; concrete.color.set(0xffffff); concrete.needsUpdate = true; } }),
     assets.texture('concrete_layers_02/nor_gl.jpg', 1).then(t => { if (!disposed) { concrete.normalMap = t; concrete.normalScale.set(.3, .3); concrete.needsUpdate = true; } }),
-    assets.vehicle().then(source => {
+    egoSource.then(source => {
       if (disposed) return;
-      for (const { fallback, color } of parkedCars) {
-        const detailed = detailedVehicle(source, color);
-        detailed.group.position.copy(fallback.position); detailed.group.rotation.copy(fallback.rotation); fallback.visible = false; scene.add(detailed.group);
-      }
       detailedEgo = detailedVehicle(source, 0xc99545);
       detailedEgo.group.traverse(o => o.layers.set(1)); scene.add(detailedEgo.group);
       ego.group.visible = false;
@@ -147,9 +157,11 @@ export function createScene(root: HTMLElement, contextLost: () => void, scenario
     const p = localPoint(s, lateral, forward), yaw = s.yaw + relativeYaw;
     camera.position.set(p.x, y, p.z); camera.lookAt(p.x + Math.sin(yaw) * 10, y + slope * 10, p.z - Math.cos(yaw) * 10);
   }
-  function viewport(rect: DOMRect) {
+  function viewport(rect: DOMRect, clip = rect) {
     renderer.setViewport(rect.left, height - rect.bottom, rect.width, rect.height);
-    renderer.setScissor(rect.left, height - rect.bottom, rect.width, rect.height);
+    const left = Math.max(rect.left, clip.left), right = Math.min(rect.right, clip.right);
+    const top = Math.max(rect.top, clip.top), bottom = Math.min(rect.bottom, clip.bottom);
+    renderer.setScissor(left, height - bottom, Math.max(0, right - left), Math.max(0, bottom - top));
   }
   function visible(rect: DOMRect) { return rect.width > 0 && rect.height > 0 && rect.bottom > 0 && rect.top < height; }
   function render(s: State, aids: boolean, braking = false) {
@@ -157,7 +169,8 @@ export function createScene(root: HTMLElement, contextLost: () => void, scenario
     ego.group.position.set(s.x, 0, s.z); ego.group.rotation.y = -s.yaw;
     ego.frontWheels.forEach(wheel => wheel.rotation.y = -s.steer);
     ego.rearLight.emissiveIntensity = s.brakeHold || s.speed === 0 ? 1.3 : .2;
-    cockpit.update(s, braking);
+    cockpit.group.visible = !photoCabin.active;
+    if (photoCabin.active) photoCabin.update(s, braking); else cockpit.update(s, braking);
     if (previousX !== undefined) { const delta = Math.hypot(s.x - previousX, s.z - previousZ); if (delta < .5) distance += delta * Math.sign(s.speed); }
     previousX = s.x; previousZ = s.z;
     if (detailedEgo) {
@@ -172,7 +185,7 @@ export function createScene(root: HTMLElement, contextLost: () => void, scenario
       points.forEach((p, i) => attribute.setXYZ(i, p.x, .045, p.z));
       attribute.needsUpdate = true; line.geometry.setDrawRange(0, points.length); line.computeLineDistances(); line.visible = points.length > 1;
     });
-    cameraPose(driver, s, -.38, 1.05, 1.22, .12, -.27);
+    cameraPose(driver, s, -.38, 1.05, 1.22, photoCabin.active ? 0 : .12, photoCabin.active ? -.1 : -.27);
     cameraPose(rear, s, 0, 1.6, 1.4, Math.PI, -.12);
     cameraPose(left, s, -1.01, 2.2, 1.14, Math.PI + .18, -.2);
     cameraPose(right, s, 1.01, 2.2, 1.14, Math.PI - .18, -.2);
@@ -199,10 +212,21 @@ export function createScene(root: HTMLElement, contextLost: () => void, scenario
       renderer.setRenderTarget(target); renderer.setScissorTest(false); renderer.render(scene, camera);
       renderer.setRenderTarget(null); renderer.setScissorTest(true);
       if (mirrorVisible) { viewport(rect); quadMaterial.map = target.texture; renderer.render(mirrorScene, mirrorCamera); }
+      if (name === 'rear' && photoCabin.active && s.gear === 'R') {
+        const screen = photoCabin.monitor.getBoundingClientRect();
+        if (visible(screen)) {
+          // Crop the shared wide mirror image to the photographed monitor's aspect.
+          const crop = Math.min(1, (screen.width / screen.height) / camera.aspect);
+          for (let v = 0; v < uv.count; v++) uv.setX(v, .5 + (v % 2 === 0 ? .5 : -.5) * crop);
+          uv.needsUpdate = true; viewport(screen, elements.driver.getBoundingClientRect()); quadMaterial.map = target.texture; renderer.render(mirrorScene, mirrorCamera);
+          for (let v = 0; v < uv.count; v++) uv.setX(v, v % 2 === 0 ? 1 : 0);
+          uv.needsUpdate = true;
+        }
+      }
     });
   }
   function dispose() {
-    disposed = true;
+    disposed = true; photoCabin.dispose();
     renderer.setAnimationLoop(null);
     const geometries = new Set<T.BufferGeometry>(), materials = new Set<T.Material>(), textures = new Set<T.Texture>();
     for (const tree of [scene, mirrorScene]) tree.traverse(object => {

@@ -10,3 +10,5 @@
 # Preserve downloaded asset bytes across Windows/Linux for manifest checksums.
 app/public/assets/realistic/** -text
 app/public/assets/realistic/manifest.json text eol=lf
+*.glb binary
+app/public/assets/luxury/manifest.json text eol=lf

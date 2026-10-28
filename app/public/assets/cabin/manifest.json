@@ -1,0 +1,24 @@
+[
+  {
+    "file": "dashboard.png",
+    "bytes": 1979573,
+    "sha256": "9c98f4e7d3a2298b7e140ec0e28abbd3df630318776eeaedda2aa06c71265711",
+    "source": "Built-in imagegen, reference: user-supplied assets/example",
+    "generation": "2026-10-28",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "file": "wheel.png",
+    "bytes": 1922973,
+    "sha256": "b9c6cadf27c65da7a74d3825f6d7d97d6dce1ab91a74359b9bafb6972c1de0ef",
+    "source": "Built-in imagegen, reference: user-supplied assets/example",
+    "generation": "2026-10-28",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  }
+]
