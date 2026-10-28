@@ -39,4 +39,4 @@
 - Normal LHD photo-cabin/failed-asset regression and full RHD/browser regression passed. Earlier concurrent graphics suites experienced a context-loss/short-timing failure; each affected suite then passed sequentially against the unchanged production build. Final browser validation was serialized to avoid GPU contention.
 - Native and fallback screenshots saved in assets/previews/fullscreen-*.png; previous right-drive comparison screenshots restored after regression generation.
 - Photo layout keeps gauges/monitor in wide fullscreen viewports; portrait retains original photo crop. Existing control nodes, vehicle state, driving-side choice, and normal layout are retained.
-- Deployment pending.
+- Deployed 08b9682da5fface32596b8d090e015fdb42f63c2 via successful Pages run https://github.com/bboy800820/reverse_challenge/actions/runs/40742077545. Public smoke passed native document fullscreen, right drive, R camera, map collapse, reverse creep, Space brake and Escape restoring the original paused layout; no page errors.
