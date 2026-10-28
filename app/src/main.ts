@@ -3,14 +3,15 @@ import { shift, step, clearance, type Gear } from './simulation';
 import { bindInput } from './input';
 import { createScene } from './scene';
 import { SCENARIOS, scenarioState } from './scenarios';
+import { savedDrivingSide, saveDrivingSide, type DrivingSide } from './driving-side';
 
 const root = document.querySelector<HTMLElement>('#app')!;
 root.innerHTML = `
   <header class="topbar"><div class="brand"><span class="brand-icon">↶</span><div><h1>倒車練習室</h1><p>深藍儀表板</p></div></div><div class="lesson"><span data-lesson-level>入門</span><strong data-lesson-name>垂直倒車入庫</strong><span class="lesson-target" data-target-name>03 號車位</span></div><div class="session"><i></i><span data-session>練習中</span></div></header>
-  <section class="scenario-bar" aria-label="場景選擇"><div><label for="scenario">選擇練習場景</label><select id="scenario" data-scenario>${SCENARIOS.map(s => `<option value="${s.id}">${s.name} · ${s.difficulty}</option>`).join('')}</select></div><p data-lesson-description>${SCENARIOS[0].description}</p><span>切換後重新開始</span></section>
+  <section class="scenario-bar" aria-label="場景與駕駛座選擇"><div><label for="scenario">選擇練習場景</label><select id="scenario" data-scenario>${SCENARIOS.map(s => `<option value="${s.id}">${s.name} · ${s.difficulty}</option>`).join('')}</select></div><div class="driving-side-picker"><label for="driving-side">駕駛座</label><select id="driving-side" data-driving-side aria-label="駕駛座，停穩後可切換"><option value="left">左駕</option><option value="right">右駕</option></select></div><p data-lesson-description>${SCENARIOS[0].description}</p><span>切換場景後重新開始</span></section>
   <div class="workspace">
     <section class="driver panel" aria-label="駕駛視角">
-      <div class="panel-heading"><h2>駕駛視角</h2><span title="Lamborghini Aventador、Rolls-Royce Cullinan、Ferrari 458">左駕 · 名車停靠區</span></div>
+      <div class="panel-heading"><h2>駕駛視角</h2><span data-driving-label title="Lamborghini Aventador、Rolls-Royce Cullinan、Ferrari 458">左駕 · 名車停靠區</span></div>
       <div class="drive-window" data-view="driver" tabindex="0" aria-label="駕駛畫面，使用方向鍵操作">
         <div class="windshield-frame" aria-hidden="true"></div>
         <div class="mirror central" data-view="rear"><span>中央後視鏡</span></div>
@@ -35,6 +36,13 @@ root.innerHTML = `
 
 const $ = <T extends HTMLElement = HTMLElement>(selector: string) => root.querySelector<T>(selector)!;
 let scenario = SCENARIOS[0];
+let drivingSide: DrivingSide = savedDrivingSide();
+function showDrivingSide() {
+  root.dataset.drivingSide = drivingSide;
+  $<HTMLSelectElement>('select[data-driving-side]').value = drivingSide;
+  $('[data-driving-label]').textContent = `${drivingSide === 'right' ? '右駕' : '左駕'} · 名車停靠區`;
+}
+showDrivingSide();
 let graphics: ReturnType<typeof createScene> | undefined;
 let state = scenarioState(scenario), paused = false, aids = true, centerAssist = false;
 let messageUntil = 0, lastCollision = 0, accumulator = 0, lastTime = 0, uiElapsed = 0;
@@ -62,6 +70,19 @@ $('[data-reset]').onclick = () => {
   state = scenarioState(scenario); paused = false; centerAssist = false; accumulator = 0; lastCollision = 0; messageUntil = 0; input.clear(); updateUI();
 };
 $<HTMLInputElement>('[data-aids]').onchange = e => { aids = (e.target as HTMLInputElement).checked; };
+$<HTMLSelectElement>('select[data-driving-side]').onchange = event => {
+  const next = (event.target as HTMLSelectElement).value;
+  if (unavailable || Math.abs(state.speed) > .001) {
+    showDrivingSide();
+    if (!unavailable) notice('請先煞停車輛，再切換左駕／右駕。');
+  } else if ((next === 'left' || next === 'right') && next !== drivingSide) {
+    input.clear(); centerAssist = false; state.speed = 0; state.brakeHold = true;
+    drivingSide = next; showDrivingSide(); graphics?.setDrivingSide(next); saveDrivingSide(next);
+    notice(`已切換${next === 'right' ? '右駕' : '左駕'}並保持煞車；方向鍵與道路方向不變。`);
+    updateUI();
+  }
+  $('[data-view="driver"]').focus({ preventScroll: true });
+};
 
 function updateUI() {
   const speed = (Math.abs(state.speed) * 3.6).toFixed(1), angle = state.steer * 180 / Math.PI, controls = input.read();
@@ -101,7 +122,7 @@ function startGraphics() {
   root.dataset.ready = 'false';
   $('[data-visual-status]').textContent = '正在載入實景環境…';
   try {
-  const current = createScene(root, () => renderFailure('3D 畫面已中斷，請點「重新開始」重新載入。'), scenario);
+  const current = createScene(root, () => renderFailure('3D 畫面已中斷，請點「重新開始」重新載入。'), scenario, drivingSide);
   graphics = current;
   void current.ready.then(() => {
     if (graphics !== current) return;

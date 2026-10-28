@@ -1,9 +1,11 @@
 import type { State } from './simulation';
+import type { DrivingSide } from './driving-side';
 
 /** Photographic foreground; windows and monitor opening reveal the live WebGL scene. */
-export function createPhotoCabin(root: HTMLElement) {
+export function createPhotoCabin(root: HTMLElement, drivingSide: DrivingSide = 'left') {
   const view = root.querySelector<HTMLElement>('[data-view="driver"]')!;
   const stage = document.createElement('div'); stage.className = 'photo-cabin'; stage.hidden = true;
+  stage.dataset.drivingSide = drivingSide;
   stage.setAttribute('aria-hidden', 'true');
   const base = `${import.meta.env.BASE_URL}assets/cabin/`;
   function dial(x: number, label: string, maximum: number) {
@@ -51,6 +53,7 @@ export function createPhotoCabin(root: HTMLElement) {
   });
   return {
     ready, monitor, get active() { return active; },
+    setDrivingSide(side: DrivingSide) { stage.dataset.drivingSide = side; resize(); },
     update(s: State, braking: boolean) {
       if (!active) return;
       wheel.style.transform = `translate(-50%, -50%) rotate(${s.steer * 180 / Math.PI * 14}deg)`;

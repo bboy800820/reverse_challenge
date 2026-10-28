@@ -8,6 +8,8 @@ with sync_playwright() as p:
     browser = p.chromium.launch(channel='msedge', headless=True)
     page = browser.new_page(viewport={'width':390, 'height':844})
     page.goto(os.environ.get('PARKING_URL', 'http://127.0.0.1:5188/reverse_challenge/'))
+    if os.environ.get('DRIVING_SIDE'):
+        page.select_option('select[data-driving-side]', os.environ['DRIVING_SIDE'])
     page.select_option('select[data-scenario]', 'residential')
     page.wait_for_function("document.querySelector('#app').dataset.assets === 'ready'", timeout=60000)
     page.keyboard.press('2')

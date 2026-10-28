@@ -9,6 +9,7 @@ import { parkedVehicle } from './parked-vehicle';
 import { photographicEnvironment } from './photographic-environment';
 import { parkingLayout } from './parking-layout';
 import { SCENARIOS, type Scenario } from './scenarios';
+import type { DrivingSide } from './driving-side';
 
 const mat = (color: number, roughness = .7, metalness = 0) => new T.MeshStandardMaterial({ color, roughness, metalness });
 const unitBox = new T.BoxGeometry(1, 1, 1);
@@ -67,7 +68,7 @@ function asphalt() {
   return texture;
 }
 
-export function createScene(root: HTMLElement, contextLost: () => void, scenario: Scenario = SCENARIOS[0]) {
+export function createScene(root: HTMLElement, contextLost: () => void, scenario: Scenario = SCENARIOS[0], drivingSide: DrivingSide = 'left') {
   const renderer = new T.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
   renderer.domElement.className = 'world-canvas'; renderer.domElement.setAttribute('aria-hidden', 'true');
   document.body.prepend(renderer.domElement);
@@ -90,8 +91,8 @@ export function createScene(root: HTMLElement, contextLost: () => void, scenario
     scene.add(fallback); return { fallback, spec: pose.spec };
   });
   const ego = car(0xdcae65); ego.group.traverse(o => o.layers.set(1)); scene.add(ego.group);
-  const cockpit = createCockpit(); scene.add(cockpit.group);
-  const photoCabin = createPhotoCabin(root);
+  const cockpit = createCockpit(drivingSide); scene.add(cockpit.group);
+  const photoCabin = createPhotoCabin(root, drivingSide);
   root.classList.add('realistic-cockpit');
   const assets = new VisualAssets();
   let disposed = false, detailedEgo: ReturnType<typeof detailedVehicle> | undefined;
@@ -185,7 +186,8 @@ export function createScene(root: HTMLElement, contextLost: () => void, scenario
       points.forEach((p, i) => attribute.setXYZ(i, p.x, .045, p.z));
       attribute.needsUpdate = true; line.geometry.setDrawRange(0, points.length); line.computeLineDistances(); line.visible = points.length > 1;
     });
-    cameraPose(driver, s, -.38, 1.05, 1.22, photoCabin.active ? 0 : .12, photoCabin.active ? -.1 : -.27);
+    const sideSign = drivingSide === 'right' ? -1 : 1;
+    cameraPose(driver, s, -.38 * sideSign, 1.05, 1.22, photoCabin.active ? 0 : .12 * sideSign, photoCabin.active ? -.1 : -.27);
     cameraPose(rear, s, 0, 1.6, 1.4, Math.PI, -.12);
     cameraPose(left, s, -1.01, 2.2, 1.14, Math.PI + .18, -.2);
     cameraPose(right, s, 1.01, 2.2, 1.14, Math.PI - .18, -.2);
@@ -241,5 +243,7 @@ export function createScene(root: HTMLElement, contextLost: () => void, scenario
     renderer.domElement.removeEventListener('webglcontextlost', onContextLost);
     renderer.dispose(); renderer.forceContextLoss(); renderer.domElement.remove();
   }
-  return { renderer, render, dispose, ready };
+  return { renderer, render, dispose, ready, setDrivingSide(side: DrivingSide) {
+    drivingSide = side; cockpit.setDrivingSide(side); photoCabin.setDrivingSide(side);
+  } };
 }

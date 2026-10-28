@@ -1,8 +1,9 @@
 import * as T from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import type { State } from './simulation';
+import type { DrivingSide } from './driving-side';
 
-export function createCockpit() {
+export function createCockpit(drivingSide: DrivingSide = 'left') {
   const group = new T.Group();
   const grain = document.createElement('canvas'); grain.width = grain.height = 256;
   const g = grain.getContext('2d')!, pixels = g.createImageData(256, 256);
@@ -106,11 +107,19 @@ export function createCockpit() {
   }
   rounded(group, [1.68, .08, .12], [0, 1.62, -1.95], leather, .035);
   group.traverse(o => o.layers.set(2));
+  let sideSign = 1;
+  function setDrivingSide(side: DrivingSide) {
+    sideSign = side === 'right' ? -1 : 1;
+    group.scale.x = sideSign;
+    // Reflect the structure, but keep display text and camera UV orientation readable.
+    for (const panel of [display, screen, rearScreen, gatePanel]) panel.scale.x = sideSign;
+  }
+  setDrivingSide(drivingSide);
   let previous = '';
   function whiteMaterial() { return new T.MeshBasicMaterial({ color: 0xb6d9e5 }); }
-  return { group, setRearView(texture: T.Texture) { rearMaterial.map = texture; rearMaterial.needsUpdate = true; }, update(s: State, braking = false) {
+  return { group, setDrivingSide, setRearView(texture: T.Texture) { rearMaterial.map = texture; rearMaterial.needsUpdate = true; }, update(s: State, braking = false) {
     group.position.set(s.x, 0, s.z); group.rotation.y = -s.yaw;
-    wheel.rotation.z = -s.steer * 14;
+    wheel.rotation.z = -s.steer * 14 * sideSign;
     lever.position.z = -2.04 + ['P', 'R', 'N', 'D'].indexOf(s.gear) * .055;
     rearScreen.visible = s.gear === 'R' && rearMaterial.map !== null;
     const speed = (Math.abs(s.speed) * 3.6).toFixed(1), brake = braking || s.brakeHold;
