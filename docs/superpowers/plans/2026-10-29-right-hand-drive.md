@@ -36,4 +36,4 @@
 - Fresh reviewer found no production issues. Reviewer limitations (mobile, fallback readability, held keys) were resolved by the browser checks and visual inspection. No deferred issues.
 - Screenshots: assets/previews/right-drive-{mall,residential,mobile,fallback}.png.
 - Existing checkout retained on feature/right-hand-drive to preserve the user's local asset and preview files; no unrelated files were staged. Original source photo and abandoned UX concepts remain untouched.
-- Deployment pending.
+- Deployed commit 3544f14971a5531292a485b56ab961fb5e084a27 through successful Pages run https://github.com/bboy800820/reverse_challenge/actions/runs/40732401235. Public-site smoke test passed: assets ready, left/right switch, R monitor, reverse creep, Space brake, and reload persistence; no page errors.
