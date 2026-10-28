@@ -13,7 +13,7 @@ Review focus: partial cabin asset failure, stale image callbacks on scene switch
 - [x] Generate and save two referenced assets, inspect alpha and composition; record exact prompts and built-in imagegen usage.
 - [x] Add luxury asset downloader/provenance; validate model geometry/bounds and safe starts/complete maneuvers with tests.
 - [x] Integrate photo foreground, rotating wheel, live gauges/video and load fallback. Inspect desktop/mobile previews.
-- [ ] Run unit/build and relevant full browser regression, independent review, fix material issues, push/deploy and verify public URL under existing authorization.
+- [x] Run unit/build and relevant full browser regression, independent review, fix material issues, push/deploy and verify public URL under existing authorization.
 
 
 Validation and decisions:
@@ -26,4 +26,4 @@ Validation and decisions:
 - This machine: Intel Iris Xe headless sample mean42.5 FPS, median16.9ms, p95 33.5ms; not a device-independent performance claim.
 - Scope choices: fixed-camera photo composition instead of a freely navigable cabin, branded licensed neighboring cars with representative rather than certified dimensions. No real-car calibration or price/damage estimates. These choices are documented in README.
 
-Local implementation and review complete. Public deployment validation follows.
+Complete: GitHub Pages deployed 617e2ee successfully (https://github.com/bboy800820/reverse_challenge/actions/runs/40719137083). Public URL passed photo loading/compositing/control checks, all three intentional cabin/model failure fallbacks, scrolled live reverse video (pixel delta4.52), 821/860/900px monitor clipping and all three scene previews with no page errors. Original user reference remains the only untracked file; it was not published.
