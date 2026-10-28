@@ -27,7 +27,7 @@ root.innerHTML = `
       <div class="driver-footer"><span class="view-dot"></span><span data-visual-status>正在載入實景環境…</span><span class="keyboard-note">鍵盤操作</span></div>
     </section>
     <aside class="sidebar" aria-label="俯瞰與車輛操控">
-      <section class="overhead panel" id="overhead-panel"><div class="panel-heading"><h2>俯瞰輔助</h2><label class="aids-toggle"><input type="checkbox" data-aids checked>軌跡輔助</label></div><div class="map-window" data-view="overhead"></div><div class="map-legend"><span><i class="legend-car"></i>你的車</span><span><i class="legend-target"></i><span data-map-target>03 號車位</span></span><span>車頭朝箭頭方向</span></div></section>
+      <section class="overhead panel" id="overhead-panel"><div class="panel-heading"><h2>俯瞰輔助</h2><label class="aids-toggle"><input type="checkbox" data-aids checked>軌跡輔助</label><div class="overhead-window-controls"><button data-map-size aria-pressed="false" aria-label="縮小俯瞰輔助">縮小</button><button data-map-hide aria-label="隱藏俯瞰輔助">隱藏</button></div></div><div class="map-window" data-view="overhead"></div><div class="map-legend"><span><i class="legend-car"></i>你的車</span><span><i class="legend-target"></i><span data-map-target>03 號車位</span></span><span>車頭朝箭頭方向</span></div></section>
       <section class="transmission"><div class="gear-panel panel"><div class="small-title">檔位 <small>停穩＋煞車後切換</small></div><div class="gears" role="group" aria-label="排檔">${(['P', 'R', 'N', 'D'] as Gear[]).map((g, i) => `<button data-shift="${g}" aria-label="${g} 檔" aria-pressed="${g === 'P'}"><strong>${g}</strong><kbd>${i + 1}</kbd></button>`).join('')}</div></div><div class="speed-panel panel"><b data-gear>P</b><strong data-speed-label>0.0</strong><span>km/h</span></div></section>
       <section class="control-row"><div class="steering-panel panel"><div class="small-title">轉向 <span data-steer-label>右 20°</span></div><div class="mini-wheel" data-wheel aria-hidden="true">⊕</div><div class="steering-buttons"><button data-action="left" aria-label="向左轉向">←</button><button data-center title="C 輔助回正">回正 <kbd>C</kbd></button><button data-action="right" aria-label="向右轉向">→</button></div></div><button class="pedal panel" data-action="brake" title="按住 ↓、空白鍵或踏板煞車；放開後恢復蠕行"><span>煞車 <kbd>↓</kbd></span><i class="brake-pedal"></i><small data-brake-label>按住減速</small></button><button class="pedal panel" data-action="throttle"><span>油門 <kbd>↑</kbd></span><i class="gas-pedal"></i><small>按住加速</small></button></section>
       <button class="hold-button" data-hold aria-pressed="true"><span class="hold-mark">Ⓑ</span><span data-hold-label>保持煞車中</span><small data-hold-help>點擊放開</small></button>
@@ -125,7 +125,7 @@ function renderFailure(reason: string) {
   unavailable = true; paused = true; input.clear(); root.dataset.ready = 'false';
   $('.render-error').hidden = false;
   $('.render-error').textContent = reason;
-  root.querySelectorAll<HTMLButtonElement>('button:not([data-reset]):not([data-fullscreen]):not([data-fullscreen-exit]):not([data-fullscreen-map])').forEach(b => b.disabled = true);
+  root.querySelectorAll<HTMLButtonElement>('button:not([data-reset]):not([data-fullscreen]):not([data-fullscreen-exit]):not([data-fullscreen-map]):not([data-map-size]):not([data-map-hide])').forEach(b => b.disabled = true);
   updateUI();
 }
 function startGraphics() {

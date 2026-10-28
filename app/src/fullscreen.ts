@@ -6,6 +6,8 @@ export function bindFullscreen(root: HTMLElement, options: Options) {
   const entry = $<HTMLButtonElement>('button[data-fullscreen]');
   const exitButton = $<HTMLButtonElement>('[data-fullscreen-exit]');
   const mapButton = $<HTMLButtonElement>('[data-fullscreen-map]');
+  const mapSizeButton = $<HTMLButtonElement>('[data-map-size]');
+  const mapHideButton = $<HTMLButtonElement>('[data-map-hide]');
   const driver = $('.driver'), view = $('[data-view="driver"]'), overhead = $('.overhead');
   const dock = $('.practice-dock');
   const controls = ['.transmission', '.control-row', '.hold-button', '.session-buttons'].map(selector => {
@@ -13,7 +15,7 @@ export function bindFullscreen(root: HTMLElement, options: Options) {
     node.before(marker); return { node, marker };
   });
   let active = false, nativeOwned = false, pending = false, disposed = false;
-  let mapVisible = true, scrollPosition = 0, lastExit = -Infinity;
+  let mapVisible = window.innerWidth >= 700, mapSmall = false, scrollPosition = 0, lastExit = -Infinity;
   root.dataset.fullscreen = 'false';
 
   function clipOverhead() {
@@ -27,8 +29,12 @@ export function bindFullscreen(root: HTMLElement, options: Options) {
   observer.observe(driver); observer.observe(overhead);
   function showMap() {
     overhead.hidden = active && !mapVisible;
-    mapButton.textContent = mapVisible ? '收合俯瞰' : '顯示俯瞰';
+    mapButton.textContent = mapVisible ? '隱藏俯瞰' : '顯示俯瞰';
     mapButton.setAttribute('aria-expanded', String(mapVisible));
+    root.classList.toggle('practice-map-small', active && mapSmall);
+    mapSizeButton.textContent = mapSmall ? '放大' : '縮小';
+    mapSizeButton.setAttribute('aria-label', mapSmall ? '放大俯瞰輔助' : '縮小俯瞰輔助');
+    mapSizeButton.setAttribute('aria-pressed', String(mapSmall));
     clipOverhead();
   }
   function leave() {
@@ -36,7 +42,7 @@ export function bindFullscreen(root: HTMLElement, options: Options) {
     active = false; lastExit = performance.now();
     controls.forEach(({ node, marker }) => marker.after(node));
     dock.hidden = true; overhead.hidden = false; driver.style.clipPath = '';
-    root.classList.remove('practice-fullscreen'); root.dataset.fullscreen = 'false';
+    root.classList.remove('practice-fullscreen', 'practice-map-small'); root.dataset.fullscreen = 'false';
     document.documentElement.classList.remove('practice-open');
     entry.setAttribute('aria-expanded', 'false');
     if (!disposed) { options.transition(); window.scrollTo(0, scrollPosition); entry.focus({ preventScroll: true }); }
@@ -52,7 +58,6 @@ export function bindFullscreen(root: HTMLElement, options: Options) {
   async function enter() {
     if (active || pending || disposed) return;
     pending = true; active = true; scrollPosition = window.scrollY;
-    mapVisible = window.innerWidth >= 700;
     controls.forEach(({ node }) => dock.append(node)); dock.hidden = false;
     root.classList.add('practice-fullscreen'); root.dataset.fullscreen = 'true';
     document.documentElement.classList.add('practice-open');
@@ -79,6 +84,8 @@ export function bindFullscreen(root: HTMLElement, options: Options) {
   entry.onclick = () => { void enter(); };
   exitButton.onclick = () => { void exit(); };
   mapButton.onclick = () => { mapVisible = !mapVisible; showMap(); view.focus({ preventScroll: true }); };
+  mapSizeButton.onclick = () => { mapSmall = !mapSmall; showMap(); view.focus({ preventScroll: true }); };
+  mapHideButton.onclick = () => { mapVisible = false; showMap(); view.focus({ preventScroll: true }); };
   document.addEventListener('fullscreenchange', changed);
   return {
     get active() { return active; }, exit,
