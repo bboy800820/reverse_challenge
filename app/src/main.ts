@@ -1,17 +1,20 @@
 import './style.css';
+import './fullscreen.css';
 import { shift, step, clearance, type Gear } from './simulation';
 import { bindInput } from './input';
 import { createScene } from './scene';
 import { SCENARIOS, scenarioState } from './scenarios';
 import { savedDrivingSide, saveDrivingSide, type DrivingSide } from './driving-side';
+import { bindFullscreen } from './fullscreen';
 
 const root = document.querySelector<HTMLElement>('#app')!;
 root.innerHTML = `
   <header class="topbar"><div class="brand"><span class="brand-icon">↶</span><div><h1>倒車練習室</h1><p>深藍儀表板</p></div></div><div class="lesson"><span data-lesson-level>入門</span><strong data-lesson-name>垂直倒車入庫</strong><span class="lesson-target" data-target-name>03 號車位</span></div><div class="session"><i></i><span data-session>練習中</span></div></header>
   <section class="scenario-bar" aria-label="場景與駕駛座選擇"><div><label for="scenario">選擇練習場景</label><select id="scenario" data-scenario>${SCENARIOS.map(s => `<option value="${s.id}">${s.name} · ${s.difficulty}</option>`).join('')}</select></div><div class="driving-side-picker"><label for="driving-side">駕駛座</label><select id="driving-side" data-driving-side aria-label="駕駛座，停穩後可切換"><option value="left">左駕</option><option value="right">右駕</option></select></div><p data-lesson-description>${SCENARIOS[0].description}</p><span>切換場景後重新開始</span></section>
+  <div class="practice-toolbar"><strong>全螢幕練習</strong><div><button data-fullscreen-map aria-expanded="true" aria-controls="overhead-panel">收合俯瞰</button><button data-fullscreen-exit>退出全螢幕 <kbd>Esc</kbd></button></div></div>
   <div class="workspace">
     <section class="driver panel" aria-label="駕駛視角">
-      <div class="panel-heading"><h2>駕駛視角</h2><span data-driving-label title="Lamborghini Aventador、Rolls-Royce Cullinan、Ferrari 458">左駕 · 名車停靠區</span></div>
+      <div class="panel-heading"><h2>駕駛視角</h2><div class="driver-heading-actions"><span data-driving-label title="Lamborghini Aventador、Rolls-Royce Cullinan、Ferrari 458">左駕 · 名車停靠區</span><button class="fullscreen-trigger" data-fullscreen aria-expanded="false">全螢幕練習</button></div></div>
       <div class="drive-window" data-view="driver" tabindex="0" aria-label="駕駛畫面，使用方向鍵操作">
         <div class="windshield-frame" aria-hidden="true"></div>
         <div class="mirror central" data-view="rear"><span>中央後視鏡</span></div>
@@ -24,13 +27,14 @@ root.innerHTML = `
       <div class="driver-footer"><span class="view-dot"></span><span data-visual-status>正在載入實景環境…</span><span class="keyboard-note">鍵盤操作</span></div>
     </section>
     <aside class="sidebar" aria-label="俯瞰與車輛操控">
-      <section class="overhead panel"><div class="panel-heading"><h2>俯瞰輔助</h2><label class="aids-toggle"><input type="checkbox" data-aids checked>軌跡輔助</label></div><div class="map-window" data-view="overhead"></div><div class="map-legend"><span><i class="legend-car"></i>你的車</span><span><i class="legend-target"></i><span data-map-target>03 號車位</span></span><span>車頭朝箭頭方向</span></div></section>
+      <section class="overhead panel" id="overhead-panel"><div class="panel-heading"><h2>俯瞰輔助</h2><label class="aids-toggle"><input type="checkbox" data-aids checked>軌跡輔助</label></div><div class="map-window" data-view="overhead"></div><div class="map-legend"><span><i class="legend-car"></i>你的車</span><span><i class="legend-target"></i><span data-map-target>03 號車位</span></span><span>車頭朝箭頭方向</span></div></section>
       <section class="transmission"><div class="gear-panel panel"><div class="small-title">檔位 <small>停穩＋煞車後切換</small></div><div class="gears" role="group" aria-label="排檔">${(['P', 'R', 'N', 'D'] as Gear[]).map((g, i) => `<button data-shift="${g}" aria-label="${g} 檔" aria-pressed="${g === 'P'}"><strong>${g}</strong><kbd>${i + 1}</kbd></button>`).join('')}</div></div><div class="speed-panel panel"><b data-gear>P</b><strong data-speed-label>0.0</strong><span>km/h</span></div></section>
       <section class="control-row"><div class="steering-panel panel"><div class="small-title">轉向 <span data-steer-label>右 20°</span></div><div class="mini-wheel" data-wheel aria-hidden="true">⊕</div><div class="steering-buttons"><button data-action="left" aria-label="向左轉向">←</button><button data-center title="C 輔助回正">回正 <kbd>C</kbd></button><button data-action="right" aria-label="向右轉向">→</button></div></div><button class="pedal panel" data-action="brake" title="按住 ↓、空白鍵或踏板煞車；放開後恢復蠕行"><span>煞車 <kbd>↓</kbd></span><i class="brake-pedal"></i><small data-brake-label>按住減速</small></button><button class="pedal panel" data-action="throttle"><span>油門 <kbd>↑</kbd></span><i class="gas-pedal"></i><small>按住加速</small></button></section>
       <button class="hold-button" data-hold aria-pressed="true"><span class="hold-mark">Ⓑ</span><span data-hold-label>保持煞車中</span><small data-hold-help>點擊放開</small></button>
       <div class="session-buttons"><button data-pause>Ⅱ 暫停 <kbd>Esc</kbd></button><button data-reset>↻ 重新開始</button></div>
     </aside>
   </div>
+  <div class="practice-dock" hidden aria-label="全螢幕車輛操控"></div>
   <section class="feedback" aria-label="練習狀態"><div class="coach"><span class="coach-icon">↳</span><div><strong data-coach-title>準備倒車</strong><p data-message role="status" aria-live="polite">已保持煞車，切入 R 檔後，再放開煞車。</p></div></div><div class="metric"><small>最近障礙</small><strong data-clearance>—<span>m</span></strong></div><div class="metric"><small>碰撞次數</small><strong data-collisions>0</strong></div></section>
   <footer class="page-footer"><span>↑ 油門　↓ / 空白鍵 煞車　← → 轉向　1–4 換檔</span><span>低速操作示意 · 尚未以真車校準　<a href="${import.meta.env.BASE_URL}assets/credits.html" target="_blank" rel="noopener">素材來源</a></span></footer>`;
 
@@ -47,6 +51,7 @@ let graphics: ReturnType<typeof createScene> | undefined;
 let state = scenarioState(scenario), paused = false, aids = true, centerAssist = false;
 let messageUntil = 0, lastCollision = 0, accumulator = 0, lastTime = 0, uiElapsed = 0;
 let unavailable = false;
+let fullscreen: ReturnType<typeof bindFullscreen> | undefined;
 function notice(message: string) { $('[data-message]').textContent = message; messageUntil = performance.now() + 4500; }
 function pause(value: boolean, blur = false) {
   if (unavailable) return;
@@ -60,7 +65,7 @@ function selectGear(gear: Gear) {
   if (!shift(state, gear, input.read().brake)) notice('請先停穩並踩住煞車，再切換檔位。');
   else { messageUntil = 0; updateUI(); }
 }
-const input = bindInput(root, { shift: selectGear, pause: () => pause(!paused), blur: () => pause(true, true), center: () => { centerAssist = true; }, changed: () => updateUI() });
+const input = bindInput(root, { shift: selectGear, pause: () => { if (!fullscreen?.escape()) pause(!paused); }, blur: () => pause(true, true), center: () => { centerAssist = true; }, changed: () => updateUI() });
 root.querySelectorAll<HTMLButtonElement>('[data-shift]').forEach(button => button.onclick = () => selectGear(button.dataset.shift as Gear));
 $('[data-hold]').onclick = () => { if (!unavailable) { state.brakeHold = !state.brakeHold; messageUntil = 0; updateUI(); } };
 $('[data-center]').onclick = () => { centerAssist = true; };
@@ -84,6 +89,11 @@ $<HTMLSelectElement>('select[data-driving-side]').onchange = event => {
   $('[data-view="driver"]').focus({ preventScroll: true });
 };
 
+fullscreen = bindFullscreen(root, { notice, transition() {
+  input.clear(); state.speed = 0; state.brakeHold = true; paused = true; accumulator = 0;
+  updateUI();
+} });
+
 function updateUI() {
   const speed = (Math.abs(state.speed) * 3.6).toFixed(1), angle = state.steer * 180 / Math.PI, controls = input.read();
   Object.assign(root.dataset, { speed: String(state.speed), x: String(state.x), z: String(state.z), steer: String(state.steer), paused: String(paused), scenario: scenario.id, parked: String(state.parked) });
@@ -99,7 +109,8 @@ function updateUI() {
   $('[data-hold]').setAttribute('aria-pressed', String(state.brakeHold));
   $('[data-hold-label]').textContent = state.brakeHold ? '保持煞車中' : '保持煞車';
   $('[data-hold-help]').textContent = state.brakeHold ? '點擊放開' : '點擊踩住';
-  $('[data-pause]').innerHTML = paused ? '▶ 繼續練習 <kbd>Esc</kbd>' : 'Ⅱ 暫停 <kbd>Esc</kbd>';
+  $('[data-pause]').innerHTML = `${paused ? '▶ 繼續練習' : 'Ⅱ 暫停'}${fullscreen?.active ? '' : ' <kbd>Esc</kbd>'}`;
+  $('.pause-cover span').textContent = fullscreen?.active ? '點「繼續練習」返回；Esc 退出全螢幕' : '按 Esc 或「繼續練習」返回';
   $('.pause-cover').hidden = !paused || unavailable;
   $('[data-session]').textContent = unavailable ? '畫面無法啟動' : paused ? '已暫停' : state.parked ? '停車完成' : '練習中';
   $('[data-collisions]').textContent = String(state.collisions);
@@ -114,7 +125,7 @@ function renderFailure(reason: string) {
   unavailable = true; paused = true; input.clear(); root.dataset.ready = 'false';
   $('.render-error').hidden = false;
   $('.render-error').textContent = reason;
-  root.querySelectorAll<HTMLButtonElement>('button:not([data-reset])').forEach(b => b.disabled = true);
+  root.querySelectorAll<HTMLButtonElement>('button:not([data-reset]):not([data-fullscreen]):not([data-fullscreen-exit]):not([data-fullscreen-map])').forEach(b => b.disabled = true);
   updateUI();
 }
 function startGraphics() {
@@ -166,4 +177,4 @@ $<HTMLSelectElement>('[data-scenario]').onchange = event => {
   $('[data-view="driver"]').focus({ preventScroll: true });
 };
 updateUI(); startGraphics();
-if (import.meta.hot) import.meta.hot.dispose(() => { graphics?.dispose(); input.dispose(); });
+if (import.meta.hot) import.meta.hot.dispose(() => { fullscreen?.dispose(); graphics?.dispose(); input.dispose(); });

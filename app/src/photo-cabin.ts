@@ -28,8 +28,12 @@ export function createPhotoCabin(root: HTMLElement, drivingSide: DrivingSide = '
   const needles = stage.querySelectorAll('[data-needle]');
   let active = false, disposed = false, last = '';
   function resize() {
+    const expanded = root.classList.contains('practice-fullscreen');
     const width = Math.max(view.clientWidth, view.clientHeight * 1.5);
-    stage.style.width = `${width}px`; stage.style.height = `${width / 1.5}px`;
+    // Wide fullscreen viewports must retain the gauges and monitor below the windshield.
+    const height = expanded && view.clientWidth >= view.clientHeight * 1.5 ? view.clientHeight / .935 : width / 1.5;
+    stage.style.width = `${width}px`; stage.style.height = `${height}px`;
+    wheel.style.width = expanded ? `${Math.min(width * .39, height * .585)}px` : '';
     if (!active) return;
     const bounds = stage.getBoundingClientRect();
     const holes = ['rear', 'left', 'right'].map(name => {

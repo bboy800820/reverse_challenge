@@ -193,11 +193,10 @@ export function createScene(root: HTMLElement, contextLost: () => void, scenario
     cameraPose(right, s, 1.01, 2.2, 1.14, Math.PI - .18, -.2);
     renderer.setRenderTarget(null); renderer.setScissorTest(false); renderer.setClearColor(0x091827, 0); renderer.clear(); renderer.setScissorTest(true);
     renderer.shadowMap.needsUpdate = true;
-    for (const [name, camera] of [['driver', driver], ['overhead', overhead]] as const) {
+    for (const [name, camera] of [['driver', driver]] as const) {
       const rect = elements[name].getBoundingClientRect(); if (!visible(rect)) continue;
       const aspect = rect.width / rect.height;
-      if (camera instanceof T.PerspectiveCamera) camera.aspect = aspect;
-      else { const halfHeight = Math.max(9.2, 12.7 / aspect); camera.left = -halfHeight * aspect; camera.right = halfHeight * aspect; camera.top = halfHeight; camera.bottom = -halfHeight; }
+      camera.aspect = aspect;
       camera.updateProjectionMatrix(); viewport(rect); renderer.render(scene, camera);
     }
     (['rear', 'left', 'right'] as const).forEach((name, i) => {
@@ -226,6 +225,14 @@ export function createScene(root: HTMLElement, contextLost: () => void, scenario
         }
       }
     });
+    // The fullscreen overhead floats above the driver, so paint it after mirrors.
+    const mapRect = elements.overhead.getBoundingClientRect();
+    if (visible(mapRect)) {
+      const aspect = mapRect.width / mapRect.height, halfHeight = Math.max(9.2, 12.7 / aspect);
+      overhead.left = -halfHeight * aspect; overhead.right = halfHeight * aspect;
+      overhead.top = halfHeight; overhead.bottom = -halfHeight; overhead.updateProjectionMatrix();
+      viewport(mapRect); renderer.render(scene, overhead);
+    }
   }
   function dispose() {
     disposed = true; photoCabin.dispose();
