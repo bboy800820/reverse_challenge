@@ -17,7 +17,7 @@ Review focus: switch during loading or driving; keyboard focus in scene selector
 - [x] Add tests for valid starts, parallel completion (including yaw wrap), collisions, and false completion. Watch new tests fail, then implement `Scenario`, `SCENARIOS`, `scenarioState` and target heading support.
 - [x] Add street photos/HDRs with hashes and credits. Build scene from active scenario; selection and safe lifecycle in main. Test switching and asset failure in Edge.
 - [x] Upgrade cockpit geometry, gauges, trim and gear lever/display. Inspect actual desktop/mobile captures, moving/stop/brake/gear behavior.
-- [ ] Run unit suite, build, keyboard regression and browser scenario tests. Fresh review; address material findings. Save previews, update README, commit/push using existing authorization, verify Pages.
+- [x] Run unit suite, build, keyboard regression and browser scenario tests. Fresh review; address material findings. Save previews, update README, commit/push using existing authorization, verify Pages.
 
 Progress and evidence will be recorded below.
 
@@ -31,4 +31,4 @@ Verification (2026-10-28):
 - Fresh read-only reviewer found one important issue: R camera froze when its source DOM mirror scrolled offscreen. New verify-cabin-camera.py reproduced it (mean changed pixel 0.065, below 0.2 threshold). Renderer now updates the shared rear target whenever the visible cockpit needs it, independently of the DOM mirror blit. Positive regression passed after the fix (mean changed pixel 3.49), followed by all scenario browser checks and 36/36 unit tests.
 - Implementation decisions: three representative lessons, CC0 London street photos, generic left-drive interior and steering-angle gauge. Not calibrated to a particular car or Taiwan street; this scope is described in README. No deferred review findings. Reviewer did not run browser checks (parent ran them), and real-car calibration remains outside this requested visual/scene update.
 
-Local implementation, review and validation complete; Pages deployment verification follows.
+Implementation, review, validation and deployment complete. GitHub Pages deployed b519ba0 successfully: https://github.com/bboy800820/reverse_challenge/actions/runs/40711955290 . Public URL verification passed all three scenes, rapid switching, selector keyboard, responsive sizes, failed-photo fallback and the scrolled cabin reverse camera regression (mean pixel change 3.57). Screenshots are saved under assets/previews/*-cabin-*.png; original comparison images retained.
