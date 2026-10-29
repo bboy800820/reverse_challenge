@@ -2,7 +2,7 @@ export type Gear = 'P' | 'R' | 'N' | 'D';
 export type Point = { x: number; z: number };
 export type Rect = { minX: number; maxX: number; minZ: number; maxZ: number };
 export type World = { bounds: Rect; obstacles: Rect[]; target: Rect; targetYaw?: number };
-export type Input = { throttle: boolean; brake: boolean; steer: number; center: boolean };
+export type Input = { throttle: boolean; brake: boolean; steer: number; center: boolean; targetSteer?: number };
 export type State = Point & { yaw: number; steer: number; speed: number; gear: Gear; brakeHold: boolean; collisions: number; contact: boolean; parkedTime: number; parked: boolean };
 export const VEHICLE = { width: 1.8, front: 3.6, rear: .9, wheelbase: 2.7, maxSteer: Math.PI * 32 / 180 };
 export const BAY_CENTERS = [3.9, 7.6, 11.3, 15, 18.7];
@@ -73,7 +73,7 @@ export function step(s: State, input: Input, dt: number, world: World = WORLD): 
   // Substeps also protect non-animation callers from skipping thin obstacles.
   const count = Math.ceil(Math.min(dt, 2) * 120), h = Math.min(dt, 2) / count;
   for (let i = 0; i < count; i++) {
-    s.steer = input.center ? approach(s.steer, 0, .7 * h) : Math.max(-VEHICLE.maxSteer, Math.min(VEHICLE.maxSteer, s.steer + input.steer * .4 * h));
+    s.steer = Number.isFinite(input.targetSteer) ? approach(s.steer, Math.max(-VEHICLE.maxSteer, Math.min(VEHICLE.maxSteer, input.targetSteer!)), 1.8 * h) : input.center ? approach(s.steer, 0, .7 * h) : Math.max(-VEHICLE.maxSteer, Math.min(VEHICLE.maxSteer, s.steer + input.steer * .4 * h));
     if (s.gear === 'P') s.speed = 0;
     else if (input.brake || s.brakeHold) s.speed = approach(s.speed, 0, 3.2 * h);
     else if (s.gear === 'N') s.speed = approach(s.speed, 0, .32 * h);

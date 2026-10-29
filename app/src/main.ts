@@ -6,15 +6,16 @@ import { createScene } from './scene';
 import { SCENARIOS, scenarioState } from './scenarios';
 import { savedDrivingSide, saveDrivingSide, type DrivingSide } from './driving-side';
 import { bindFullscreen } from './fullscreen';
+import { bindRemote } from './remote-host';
 
 const root = document.querySelector<HTMLElement>('#app')!;
 root.innerHTML = `
   <header class="topbar"><div class="brand"><span class="brand-icon">↶</span><div><h1>倒車練習室</h1><p>深藍儀表板</p></div></div><div class="lesson"><span data-lesson-level>入門</span><strong data-lesson-name>垂直倒車入庫</strong><span class="lesson-target" data-target-name>03 號車位</span></div><div class="session"><i></i><span data-session>練習中</span></div></header>
   <section class="scenario-bar" aria-label="場景與駕駛座選擇"><div><label for="scenario">選擇練習場景</label><select id="scenario" data-scenario>${SCENARIOS.map(s => `<option value="${s.id}">${s.name} · ${s.difficulty}</option>`).join('')}</select></div><div class="driving-side-picker"><label for="driving-side">駕駛座</label><select id="driving-side" data-driving-side aria-label="駕駛座，停穩後可切換"><option value="left">左駕</option><option value="right">右駕</option></select></div><p data-lesson-description>${SCENARIOS[0].description}</p><span>切換場景後重新開始</span></section>
-  <div class="practice-toolbar"><strong>全螢幕練習</strong><div><button data-fullscreen-map aria-expanded="true" aria-controls="overhead-panel">收合俯瞰</button><button data-fullscreen-exit>退出全螢幕 <kbd>Esc</kbd></button></div></div>
+  <div class="practice-toolbar"><strong>全螢幕練習</strong><div><button data-phone-connect>連接手機</button><button data-fullscreen-map aria-expanded="true" aria-controls="overhead-panel">收合俯瞰</button><button data-fullscreen-exit>退出全螢幕 <kbd>Esc</kbd></button></div></div>
   <div class="workspace">
     <section class="driver panel" aria-label="駕駛視角">
-      <div class="panel-heading"><h2>駕駛視角</h2><div class="driver-heading-actions"><span data-driving-label title="Lamborghini Aventador、Rolls-Royce Cullinan、Ferrari 458">左駕 · 名車停靠區</span><button class="fullscreen-trigger" data-fullscreen aria-expanded="false">全螢幕練習</button></div></div>
+      <div class="panel-heading"><h2>駕駛視角</h2><div class="driver-heading-actions"><span data-driving-label title="Lamborghini Aventador、Rolls-Royce Cullinan、Ferrari 458">左駕 · 名車停靠區</span><button data-phone-connect>連接手機</button><button class="fullscreen-trigger" data-fullscreen aria-expanded="false">全螢幕練習</button></div></div>
       <div class="drive-window" data-view="driver" tabindex="0" aria-label="駕駛畫面，使用方向鍵操作">
         <div class="windshield-frame" aria-hidden="true"></div>
         <div class="mirror central" data-view="rear"><span>中央後視鏡</span></div>
@@ -52,27 +53,41 @@ let state = scenarioState(scenario), paused = false, aids = true, centerAssist =
 let messageUntil = 0, lastCollision = 0, accumulator = 0, lastTime = 0, uiElapsed = 0;
 let unavailable = false;
 let fullscreen: ReturnType<typeof bindFullscreen> | undefined;
+let remote: ReturnType<typeof bindRemote> | undefined;
+function controls() { return remote?.read(input.read()) ?? input.read(); }
 function notice(message: string) { $('[data-message]').textContent = message; messageUntil = performance.now() + 4500; }
 function pause(value: boolean, blur = false) {
   if (unavailable) return;
+  if (!value && remote && !remote.resume()) { notice(remote.pairingOpen ? '請先關閉電腦的手機配對視窗，再按繼續。' : '請先讓手機連線、校正並放開油門，再按繼續。'); return; }
+  if (value) remote?.stop();
   paused = value; input.clear(); accumulator = 0;
-  if (!value) { state.speed = 0; state.brakeHold = true; }
+  if (!value || remote?.owns) { state.speed = 0; state.brakeHold = true; }
   if (blur) notice('已離開操作視窗，練習自動暫停。');
   updateUI();
 }
 function selectGear(gear: Gear) {
   if (paused || unavailable) return;
-  if (!shift(state, gear, input.read().brake)) notice('請先停穩並踩住煞車，再切換檔位。');
+  if (!shift(state, gear, controls().brake)) notice('請先停穩並踩住煞車，再切換檔位。');
   else { messageUntil = 0; updateUI(); }
 }
 const input = bindInput(root, { shift: selectGear, pause: () => { if (!fullscreen?.escape()) pause(!paused); }, blur: () => pause(true, true), center: () => { centerAssist = true; }, changed: () => updateUI() });
+remote = bindRemote(root, {
+  stop(reason) { state.speed = 0; state.brakeHold = true; pause(true); notice(reason); },
+  command(frame) {
+    if (unavailable) return;
+    if (frame.action === 'resume') { pause(false); if (!paused) notice('已開始練習，確認檔位後放開保持煞車。'); }
+    else if (!paused && frame.action === 'gear' && frame.gear) selectGear(frame.gear);
+    else if (!paused && frame.action === 'hold') { state.brakeHold = !state.brakeHold; messageUntil = 0; updateUI(); }
+  },
+  status: () => ({ gear: state.gear, speed: Math.abs(state.speed) * 3.6, hold: state.brakeHold, paused, available: !unavailable, message: $('[data-message]').textContent }),
+});
 root.querySelectorAll<HTMLButtonElement>('[data-shift]').forEach(button => button.onclick = () => selectGear(button.dataset.shift as Gear));
-$('[data-hold]').onclick = () => { if (!unavailable) { state.brakeHold = !state.brakeHold; messageUntil = 0; updateUI(); } };
+$('[data-hold]').onclick = () => { if (!unavailable && !(remote?.owns && paused)) { state.brakeHold = !state.brakeHold; messageUntil = 0; updateUI(); } };
 $('[data-center]').onclick = () => { centerAssist = true; };
 $('[data-pause]').onclick = () => pause(!paused);
 $('[data-reset]').onclick = () => {
   if (unavailable) { location.reload(); return; }
-  state = scenarioState(scenario); paused = false; centerAssist = false; accumulator = 0; lastCollision = 0; messageUntil = 0; input.clear(); updateUI();
+  remote?.stop(); state = scenarioState(scenario); paused = !!remote?.owns; centerAssist = false; accumulator = 0; lastCollision = 0; messageUntil = 0; input.clear(); updateUI();
 };
 $<HTMLInputElement>('[data-aids]').onchange = e => { aids = (e.target as HTMLInputElement).checked; };
 $<HTMLSelectElement>('select[data-driving-side]').onchange = event => {
@@ -82,6 +97,7 @@ $<HTMLSelectElement>('select[data-driving-side]').onchange = event => {
     if (!unavailable) notice('請先煞停車輛，再切換左駕／右駕。');
   } else if ((next === 'left' || next === 'right') && next !== drivingSide) {
     input.clear(); centerAssist = false; state.speed = 0; state.brakeHold = true;
+    if (remote?.owns) pause(true);
     drivingSide = next; showDrivingSide(); graphics?.setDrivingSide(next); saveDrivingSide(next);
     notice(`已切換${next === 'right' ? '右駕' : '左駕'}並保持煞車；方向鍵與道路方向不變。`);
     updateUI();
@@ -90,12 +106,13 @@ $<HTMLSelectElement>('select[data-driving-side]').onchange = event => {
 };
 
 fullscreen = bindFullscreen(root, { notice, transition() {
+  remote?.stop();
   input.clear(); state.speed = 0; state.brakeHold = true; paused = true; accumulator = 0;
   updateUI();
 } });
 
 function updateUI() {
-  const speed = (Math.abs(state.speed) * 3.6).toFixed(1), angle = state.steer * 180 / Math.PI, controls = input.read();
+  const speed = (Math.abs(state.speed) * 3.6).toFixed(1), angle = state.steer * 180 / Math.PI, controls = remote?.read(input.read()) ?? input.read();
   Object.assign(root.dataset, { speed: String(state.speed), x: String(state.x), z: String(state.z), steer: String(state.steer), paused: String(paused), scenario: scenario.id, parked: String(state.parked) });
   $('[data-gear]').textContent = state.gear;
   $('[data-dash-gear]').textContent = state.gear;
@@ -122,6 +139,7 @@ function updateUI() {
   if (performance.now() > messageUntil && !unavailable) $('[data-message]').textContent = state.parked ? `已完整進入${scenario.targetName}並停穩，可切入 P 檔。` : paused ? '返回後會保持煞車，確認檔位再繼續。' : controls.brake ? '煞車已踩下，請持續按住直到停穩。放開後 D／R 會恢復蠕行；要持續停止可啟用「保持煞車」。' : state.gear === 'P' ? state.brakeHold ? '已保持煞車，切入 R 檔後，再放開煞車。' : '目前為 P 檔。按住 ↓ 或空白鍵踩煞車，再切入 R／D 檔。' : state.gear === 'N' ? 'N 檔不提供動力；換檔前記得踩住煞車。' : state.brakeHold ? '煞車保持中。確認周圍後，點擊「保持煞車中」放開。' : scenario.kind === 'parallel' ? '觀察右後視鏡與前後車距，倒入路邊車位；車身與路緣平行後停穩。' : '輕踩油門或利用蠕行，從後視鏡觀察車尾與白線的距離。';
 }
 function renderFailure(reason: string) {
+  remote?.stop();
   unavailable = true; paused = true; input.clear(); root.dataset.ready = 'false';
   $('.render-error').hidden = false;
   $('.render-error').textContent = reason;
@@ -143,13 +161,13 @@ function startGraphics() {
     const elapsed = lastTime ? Math.max(0, (time - lastTime) / 1000) : 0; lastTime = time;
     if (!paused && !unavailable) {
       accumulator += Math.min(elapsed, .1);
-      const controls = input.read();
+      const controls = remote?.read(input.read()) ?? input.read();
       if (controls.steer !== 0) centerAssist = false;
       controls.center = centerAssist;
       while (accumulator >= 1 / 120) { step(state, controls, 1 / 120, scenario.world); accumulator -= 1 / 120; }
       if (Math.abs(state.steer) < .001) centerAssist = false;
     }
-    if (!unavailable) current.render(state, aids, input.read().brake);
+    if (!unavailable) current.render(state, aids, controls().brake);
     uiElapsed += elapsed;
     if (uiElapsed > .05) { updateUI(); uiElapsed = 0; }
   });
@@ -164,7 +182,7 @@ $<HTMLSelectElement>('[data-scenario]').onchange = event => {
   const next = SCENARIOS.find(s => s.id === (event.target as HTMLSelectElement).value);
   if (!next || next === scenario) return;
   scenario = next; state = scenarioState(scenario);
-  paused = false; unavailable = false; centerAssist = false; accumulator = 0; lastTime = 0; uiElapsed = 0;
+  remote?.stop(); paused = !!remote?.owns; unavailable = false; centerAssist = false; accumulator = 0; lastTime = 0; uiElapsed = 0;
   lastCollision = 0; messageUntil = 0; input.clear();
   $('.render-error').hidden = true;
   root.querySelectorAll<HTMLButtonElement>('button').forEach(b => b.disabled = false);
@@ -177,4 +195,4 @@ $<HTMLSelectElement>('[data-scenario]').onchange = event => {
   $('[data-view="driver"]').focus({ preventScroll: true });
 };
 updateUI(); startGraphics();
-if (import.meta.hot) import.meta.hot.dispose(() => { fullscreen?.dispose(); graphics?.dispose(); input.dispose(); });
+if (import.meta.hot) import.meta.hot.dispose(() => { remote?.dispose(); fullscreen?.dispose(); graphics?.dispose(); input.dispose(); });

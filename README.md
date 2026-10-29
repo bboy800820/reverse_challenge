@@ -24,6 +24,10 @@
 
 ## 開啟
 
+新增「連接手機」：電腦顯示模擬畫面，手機掃 QR Code 後可用感應／觸控方向盤、油門、煞車與 P/R/N/D 操作。連線中斷會暫停並保持煞車。第一次需部署免費 Render 連線服務並填入網址；完整步驟見 [手機方向盤與免費部署](docs/phone-controller.md)。
+
+![手機控制器](assets/previews/phone-controller-844x390.png)
+
 線上版：[https://bboy800820.github.io/reverse_challenge/](https://bboy800820.github.io/reverse_challenge/)
 
 雙擊本資料夾的 **launch.cmd**，瀏覽器會開啟 <http://127.0.0.1:5187>。若預覽服務已在執行，直接開啟該網址即可。關閉啟動程式的視窗會停止服務。
